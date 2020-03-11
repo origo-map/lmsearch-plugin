@@ -46,3 +46,36 @@ Requires Origo 2.1.1 or later and a Origoserver
     	});
     </script>
 ```
+
+#### Coordinate reference systems
+
+The default coordinate reference system is SWEREF99 TM (EPSG:3006).
+
+If your map uses a different coordinate reference systems you must specify which is used in the calls to the Origoserver search API. Add a query parameter srid and the EPSG number in the URL
+
+     For example if SWEREF99 17 15 (EPSG:3014) is used:
+
+     https://exempel.se/origoserver/lm/registerenheter?lmuser=test&srid=3014
+     https://exempel.se/origoserver/lm/addresses?lmuser=test&srid=3014
+     https://exempel.se/origoserver/lm/placenames?lmuser=test&srid=3014
+     https://exempel.se/origoserver/lm/registerenheter/objectId/enhetsomraden?lmuser=test&srid=3014
+
+Valid coordinate reference systems are
+
+ * SWEREF99 TM **EPSG:3006**
+ * SWEREF99 12 00 **EPSG:3007**
+ * SWEREF99 13 30 **EPSG:3008**
+ * SWEREF99 15 00 **EPSG:3009**
+ * SWEREF99 16 30 **EPSG:3010**
+ * SWEREF99 18 00 **EPSG:3011**
+ * SWEREF99 14 15 **EPSG:3012**
+ * SWEREF99 15 45 **EPSG:3013**
+ * SWEREF99 17 15 **EPSG:3014**
+ * SWEREF99 18 45 **EPSG:3015**
+ * SWEREF99 20 15 **EPSG:3016**
+ * SWEREF99 21 45 **EPSG:3017**
+ * SWEREF99 23 15 **EPSG:3018**
+ * WGS 84 / Pseudo-Mercator -- Spherical Mercator **EPSG:3857**
+ * WGS84 - World Geodetic System 1984, used in GPS **EPSG:4326**
+
+ If others are need please update Origoserver.
