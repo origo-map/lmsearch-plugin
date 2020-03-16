@@ -10,13 +10,15 @@ const Lmsearch = function Lmsearch(options = {}) {
     contentAttribute,
     title,
     hintText,
+    estateLookup,
     minLength,
     limit,
     municipalities,
     urlFastighet,
     urlAdress,
     urlOrt,
-    urlYta
+    urlYta,
+    urlYtaKordinat
   } = options;
 
   let viewer;
@@ -36,13 +38,15 @@ const Lmsearch = function Lmsearch(options = {}) {
         contentAttribute,
         title,
         hintText,
+        estateLookup,
         minLength,
         limit,
         municipalities,
         urlFastighet,
         urlAdress,
         urlOrt,
-        urlYta
+        urlYta,
+        urlYtaKordinat
       });
       this.addComponent(search);
       this.render();

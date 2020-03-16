@@ -18,10 +18,12 @@ const Main = function Main(options = {}) {
     titleAttribute,
     contentAttribute,
     title,
+    estateLookup,
     minLength,
     limit
   } = options;
   let urlYta;
+  let urlYtaKord;
 
   const keyCodes = {
     9: 'tab',
@@ -84,6 +86,7 @@ const Main = function Main(options = {}) {
       prepOptions.urlOrt = options.urlOrt;
       prepOptions.municipalities = options.municipalities;
       urlYta = options.urlYta;
+      urlYtaKord = options.urlYtaKordinat;
 
       this.render();
       this.initAutocomplete();
@@ -243,21 +246,18 @@ const Main = function Main(options = {}) {
       };
 
       function makeRequest2(handler, obj) {
-        // if (obj.value in cache) {
-        //   console.log('making cache request');
-        //   handler(cache[obj.value]);
-        // } else {
+        let data = [];
         console.log('making new request');
         clearSearchResults(); // to prevent showing old result while waiting for the new response
-        prepSuggestions.makeRequest(prepOptions, obj.value).then(function prepSug(response) {
+        prepSuggestions.makeRequest(prepOptions, obj.value).then((response) => {
           // IE cannot handle this! use flattenData function instead.
           // var data = [...response[0], ...response[1], ...response[2]];
-          let data = flattenData(response);
+          data = flattenData(response);
           // if (data !== null && data.length > 1) {
           //   cache[obj.value] = data;
           // }
           handler(data);
-        }).catch(function prepErr(err) {
+        }).catch((err) => {
           console.log(err.message);
           data = [{
             NAMN: ' ',
@@ -297,7 +297,7 @@ const Main = function Main(options = {}) {
           if (keyCode in keyCodes) {
             // empty
           } else {
-            delay(function mr2() { makeRequest2(handler, that); }, 500);
+            delay(() => { makeRequest2(handler, that); }, 500);
           }
         }
       });
@@ -380,7 +380,7 @@ const Main = function Main(options = {}) {
           const objectId = data.id;
           const areaPromise = fetchFastighetsYta(objectId);
 
-          areaPromise.then(function getdata(response) {
+          areaPromise.then((response) => {
             if (response.features.length === 0) {
               alert('There is no data available for this object!');
               return;
@@ -398,7 +398,7 @@ const Main = function Main(options = {}) {
               console.log('Found FeatureCollection with multiple features. Trying to merge them into a Multigeometry');
               if (features[0].getGeometry().getType() === 'Polygon') {
                 const multiGeom = new MultiPolygon(features[0].getGeometry());
-                features.map(feature => {
+                features.map((feature) => {
                   multiGeom.appendPolygon(feature.getGeometry());
                 });
                 features[0].setGeometry(multiGeom);
@@ -410,8 +410,7 @@ const Main = function Main(options = {}) {
             content = viewer.getUtils().createElement('div', data[contentAttribute]);
             // content = prepSuggestions.createElement('div', data[contentAttribute]);
             showFeatureInfo(features, data[titleAttribute], content);
-
-          }).catch(function errFast(err) {
+          }).catch((err) => {
             console.error(err.statusText);
           });
         } else {
@@ -432,6 +431,74 @@ const Main = function Main(options = {}) {
       } else {
         console.log('Search options are missing');
       }
+    },
+    onMapClick(evt) {
+      const coordinate = evt.coordinate;
+
+      function fetchFastighetsYta(coords) {
+        const urlTemp = urlYtaKord.replace('easting', coords[0]).replace('northing', coords[1]);
+
+        return $.ajax({
+          url: urlTemp,
+          dataType: 'json'
+        });
+      }
+
+      function clear() {
+        featureInfo.clear();
+        if (overlay) {
+          viewer.removeOverlays(overlay);
+        }
+      }
+
+      function showFeatureInfo(features, objTitle, contentFeatureInfo) {
+        const obj = {};
+        obj.feature = features[0];
+        obj.title = objTitle;
+        obj.content = contentFeatureInfo;
+        clear();
+        featureInfo.render([obj], 'overlay', viewer.getMapUtils().getCenter(features[0].getGeometry()));
+        viewer.zoomToExtent(features[0].getGeometry(), maxZoomLevel);
+      }
+      const areaPromise = fetchFastighetsYta(coordinate);
+      let featureName = '';
+
+      areaPromise.then((response) => {
+        if (typeof response.features === 'undefined') {
+          console.log('There is no data available for this object!');
+          return;
+        }
+        const format = new GeoJSON();
+        const features = format.readFeatures(response);
+        /*
+          If the response is a feature collection we read the geometries into a multipolygon instead.
+          This is becase Origo will ignore multiple geometries and only display the first if we do not do it this way
+          A Better solution would probably be to patch origo so that it handles this in a better way but it's not a
+          well defined way to do this in a generic way as there are multiple features with both multiple attributes as well as geometries.
+          How should that be handled? In this function, at least we know from what service the data comes from.
+        */
+        if (features.length > 1) {
+          console.log('Found FeatureCollection with multiple features. Trying to merge them into a Multigeometry');
+          if (features[0].getGeometry().getType() === 'Polygon') {
+            const multiGeom = new MultiPolygon(features[0].getGeometry());
+            features.map((feature) => {
+              multiGeom.appendPolygon(feature.getGeometry());
+            });
+            features[0].setGeometry(multiGeom);
+          } else {
+            console.log('FeatureCollection does not contain Polygons, we have not implemented this for Points or Lines');
+          }
+        }
+        const featureProps = features[0].getProperties();
+        featureName = featureProps.name;
+        featureName = featureName.substring(0, featureName.indexOf('Enhetesomr'));
+        // Make sure the response is wrapped in a html element
+        const content = viewer.getUtils().createElement('div', featureName);
+        // content = prepSuggestions.createElement('div', data[contentAttribute]);
+        showFeatureInfo(features, 'Fastighet', content);
+      }).catch((err) => {
+        console.error(err);
+      });
     },
     bindUIActions() {
       document.getElementById('hjl').addEventListener('awesomplete-selectcomplete', this.selectHandler);
@@ -455,6 +522,9 @@ const Main = function Main(options = {}) {
         $('.o-search-wrapper').addClass('active');
         window.dispatchEvent(new Event('resize'));
       });
+      if (estateLookup) {
+        map.on('click', this.onMapClick);
+      }
     },
     renderList(suggestion, input) {
       const item = searchDb[suggestion.label] || {};

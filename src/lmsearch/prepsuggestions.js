@@ -95,7 +95,7 @@ const extractNames = function extractNames(urlFastighet) {
     dataType: 'json'
   });
 
-  return dataPromise.then(function extractNamesResponse(response) {
+  return dataPromise.then((response) => {
     // an array that will be populated with substring matches
     // iterate and add the whole object to the 'matches' array plus a dataType identifier
 
@@ -104,7 +104,7 @@ const extractNames = function extractNames(urlFastighet) {
     // OBS!  response.constructor.name does not work in IE
     if ( response !== null && Object.prototype.toString.call( response ) === '[object Array]' ) {
 
-      matches = response.map(function (obj) {
+      matches = response.map((obj) => {
         return {
           NAMN: obj.properties.name,
           id: obj.properties.objid,
@@ -118,7 +118,7 @@ const extractNames = function extractNames(urlFastighet) {
       matches.sort(compareFastighet);
     }
     return matches;
-  }).fail(function extractNamesError() {
+  }).fail(() => {
     console.log('Något gick fel, kunde inte hämta Fastigheter.');
   });
 };
@@ -132,9 +132,9 @@ const extractAddresses = function extractAddresses(urlAdress, q, limit) {
     dataType: 'json'
   });
 
-  return dataPromise.then(function extractAddressesResponse(response) {
+  return dataPromise.then((response) => {
 
-    if ( response === null || Object.prototype.toString.call( response ) !== '[object Array]' ) {
+    if (response === null || Object.prototype.toString.call(response) !== '[object Array]') {
       return [];
     }
 
@@ -145,8 +145,8 @@ const extractAddresses = function extractAddresses(urlAdress, q, limit) {
     // in other words all addresses coming from the same street name will be placed in a single group. this gives us a
     // better possibility of evenly spreading the results.
     let searchResultsBasedOnStreetName = {};
-    $.each(response, function (i, arrObj) {
-      let str = arrObj[1].split(' ');
+    $.each(response, (i, arrObj) => {
+      const str = arrObj[1].split(' ');
       str.pop();
       str.pop();
       str.shift();
@@ -166,23 +166,23 @@ const extractAddresses = function extractAddresses(urlAdress, q, limit) {
           preliminaryMatches.push(nextObj);
         }
       }
-      i++;
+      i += 1;
     } while (preliminaryMatches.length < limit && i <= preliminaryMatches.length && i < 100);
 
     // array objects are transformed into standards geojson objects and the pushed to matches array
-    let matches = preliminaryMatches.map(function extractNamesPreliminaryMatches(arrObj) {
+    const matches = preliminaryMatches.map((arrObj) => {
       return {
         NAMN: arrObj[1],
         TYPE: 'hallstakartan.tk_s_ads_p',
         layer: 'Adress',
         st_astext: `POINT(${arrObj[2]} ${arrObj[3]})`,
         geom_format: 'WKT'
-      }
+      };
     });
     matches.sort(compareAddress);
     return matches;
-  }).fail(function extractNamesError(err) {
-    console.log('Något gick fel, kunde inte hämta Adresser.');
+  }).fail((err) => {
+    console.log(`Något gick fel, kunde inte hämta Adresser. Error: ${err}`);
   });
 };
 
@@ -195,9 +195,9 @@ const extractOrter = function extractOrter(urlOrt, q, limit) {
     dataType: 'json'
   });
 
-  return dataPromise.then(function extractOrterResponse(response) {
+  return dataPromise.then((response) => {
 
-    if ( response === null || Object.prototype.toString.call( response ) !== '[object Array]' ) {
+    if (response === null || Object.prototype.toString.call(response) !== '[object Array]') {
       return [];
     }
 
@@ -210,7 +210,7 @@ const extractOrter = function extractOrter(urlOrt, q, limit) {
     // an array that will be populated with substring matches
     let matches = [];
 
-    response.forEach(function extractOrterResponse(obj) {
+    response.forEach((obj) => {
       if (substrRegex.test(obj.properties.name)) {
         matches.push({
           NAMN: obj.properties.name,
@@ -223,27 +223,22 @@ const extractOrter = function extractOrter(urlOrt, q, limit) {
       }
     });
     if (matches.length < limit) {
-      response.forEach(function(obj) {
+      response.forEach((obj) => {
         if (substrRegexGeneral.test(obj.properties.name)) {
-          matches.push(
-            {
-              NAMN: obj.properties.name,
-              id: obj.properties.id,
-              TYPE: 'hallstakartan.tk_s_ads_p',
-              layer: 'Ort',
-              st_astext: `POINT(${obj.geometry.coordinates[1]} ${obj.geometry.coordinates[0]})`,
-              geometry_format: 'WKT'
-            }
-          );
+          matches.push({
+            NAMN: obj.properties.name,
+            id: obj.properties.id,
+            TYPE: 'hallstakartan.tk_s_ads_p',
+            layer: 'Ort',
+            st_astext: `POINT(${obj.geometry.coordinates[1]} ${obj.geometry.coordinates[0]})`,
+            geometry_format: 'WKT'
+          });
         }
       });
     }
-    const duplicateFreeMatches = _.uniqBy(matches, function duplicateFreeMatchesUnique(obj) {
-      return obj.id;
-    });
+    const duplicateFreeMatches = _.uniqBy(matches, obj => obj.id);
     return duplicateFreeMatches;
-
-  }).fail(function extractOrterError() {
+  }).fail(() => {
     console.log('Något gick fel, kunde inte hämta Orter.');
   });
 };
@@ -266,10 +261,10 @@ const makeRequest = function makeRequest(prepOptions, q) {
     extractAddresses(urlAdress, q, limit),
     extractOrter(urlOrt, q, limit)
   ])
-    .then(function makeRequestData(data) {
+    .then((data) => {
       return data;
     })
-    .catch(function makeRequestError(err) {
+    .catch((err) => {
       throw new Error('Något gick fel, kunde inte hämta data');
     });
 };

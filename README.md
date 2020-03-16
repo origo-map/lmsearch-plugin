@@ -28,19 +28,21 @@ Requires Origo 2.1.1 or later and a Origoserver
     	origo.on('load', function (viewer) {
     		var lmsearch = Lmsearch({
           "geometryAttribute": "st_astext",
-           "layerNameAttribute": "layer",
-           "searchAttribute": "NAMN",
-           "titleAttribute": "layer",
-           "contentAttribute": "NAMN",
-           "title": "Sökresultat",
-           "hintText": "Sök adress, fastigheter...",
-           "minLength": 4,
-           "limit": 10,
+          "layerNameAttribute": "layer",
+          "searchAttribute": "NAMN",
+          "titleAttribute": "layer",
+          "contentAttribute": "NAMN",
+          "title": "Sökresultat",
+          "hintText": "Sök adress, fastigheter...",
+          "estateLookup": true,
+          "minLength": 4,
+          "limit": 10,
           "municipalities": "Sundsvall,Hudiksvall",
-			"url_fastighet": "https://exempel.se/origoserver/lm/registerenheter?lmuser=test",
-			"url_adress": "https://exempel.se/origoserver/lm/addresses?lmuser=test",
-			"url_ort": "https://exempel.se/origoserver/lm/placenames?lmuser=test",
-			"url_yta": "https://exempel.se/origoserver/lm/registerenheter/objectId/enhetsomraden?lmuser=test"
+    			"url_fastighet": "https://exempel.se/origoserver/lm/registerenheter?srid=3006",
+    			"url_adress": "https://exempel.se/origoserver/lm/addresses?srid=3006",
+    			"url_ort": "https://exempel.se/origoserver/lm/placenames?srid=3006",
+    			"url_yta": "https://exempel.se/origoserver/lm/registerenheter/objectId/enhetsomraden?srid=3006",
+    			"urlYtaKordinat": "https://exempel.se/origoserver/lm/enhetsomraden?x=easting&y=northing&srid=3006"
         });
     		viewer.addComponent(lmsearch);
     	});

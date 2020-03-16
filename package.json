@@ -14,8 +14,8 @@
   "author": "Johnny Blästa",
   "license": "MIT",
   "dependencies": {
-    "@babel/polyfill": "^7.8.3",
-    "@babel/runtime-corejs2": "^7.8.4",
+    "@babel/polyfill": "^7.8.7",
+    "@babel/runtime-corejs2": "^7.8.7",
     "awesomplete": "^1.1.5",
     "jquery": "^3.4.0",
     "lodash": "^4.17.15",
@@ -26,9 +26,9 @@
     "whatwg-fetch": "^2.0.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.8.6",
+    "@babel/core": "^7.8.7",
     "@babel/plugin-transform-runtime": "^7.8.3",
-    "@babel/preset-env": "^7.8.6",
+    "@babel/preset-env": "^7.8.7",
     "autoprefixer": "^9.7.4",
     "babel-eslint": "^8.0.1",
     "babel-loader": "^8.0.4",
@@ -48,7 +48,7 @@
     "uglify-js": "3.2.0",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.42.0",
-    "webpack-bundle-analyzer": "^3.6.0",
+    "webpack-bundle-analyzer": "^3.6.1",
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.10.3",
     "webpack-merge": "^4.2.2",
