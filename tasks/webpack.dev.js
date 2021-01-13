@@ -4,7 +4,7 @@ const WriteFilePlugin = require('write-file-webpack-plugin');
 
 module.exports = merge(common, {
   output: {
-    path: `${__dirname}/../../origo2client/plugins`,
+    path: `${__dirname}/../../origo/plugins`,
     publicPath: '/build/js',
     filename: 'lmsearch.js',
     libraryTarget: 'var',
