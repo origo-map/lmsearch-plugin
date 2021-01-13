@@ -11,14 +11,22 @@ const Lmsearch = function Lmsearch(options = {}) {
     title,
     hintText,
     estateLookup,
+    estateLookupInitialState,
     minLength,
     limit,
+    maxZoomLevel,
     municipalities,
+    showFeature,
+    featureStyles,
+    labelFont,
+    labelFontColor,
+    labelBackgroundColor,
     urlFastighet,
     urlAdress,
     urlOrt,
     urlYta,
-    urlYtaKordinat
+    urlYtaKordinat,
+    elasticSearch
   } = options;
 
   let viewer;
@@ -39,14 +47,22 @@ const Lmsearch = function Lmsearch(options = {}) {
         title,
         hintText,
         estateLookup,
+        estateLookupInitialState,
         minLength,
         limit,
+        maxZoomLevel,
         municipalities,
+        showFeature,
+        featureStyles,
+        labelFont,
+        labelFontColor,
+        labelBackgroundColor,
         urlFastighet,
         urlAdress,
         urlOrt,
         urlYta,
-        urlYtaKordinat
+        urlYtaKordinat,
+        elasticSearch
       });
       this.addComponent(search);
       this.render();

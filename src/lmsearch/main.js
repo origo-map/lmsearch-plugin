@@ -1,8 +1,16 @@
 import Origo from 'Origo';
 import Overlay from 'ol/overlay';
+import Feature from 'ol/Feature';
+import VectorSource from 'ol/source/Vector';
+import VectorLayer from 'ol/layer/Vector';
 import Point from 'ol/geom/Point';
+import Polygon from 'ol/geom/Polygon';
 import MultiPolygon from 'ol/geom/MultiPolygon';
 import GeoJSON from 'ol/format/geojson';
+import Stroke from 'ol/style/Stroke';
+import Fill from 'ol/style/Fill';
+import Text from 'ol/style/Text';
+import Style from 'ol/style/Style';
 import Awesomplete from 'awesomplete';
 import $ from 'jquery';
 import prepSuggestions from './prepsuggestions';
@@ -10,17 +18,43 @@ import generateUUID from './generateuuid';
 
 const Main = function Main(options = {}) {
   const {
-    viewer
-  } = options;
-  const {
+    viewer,
     geometryAttribute,
     layerNameAttribute,
     titleAttribute,
     contentAttribute,
     title,
-    estateLookup,
     minLength,
-    limit
+    limit,
+    showFeature = 'geometryOnly',
+    featureStyles = {
+      stroke: {
+        color: [100, 149, 237, 1],
+        width: 4,
+        lineDash: null
+      },
+      fill: {
+        color: [100, 149, 237, 0.2]
+      },
+      circle: {
+        radius: 7,
+        stroke: {
+          color: [100, 149, 237, 1],
+          width: 2
+        },
+        fill: {
+          color: [255, 255, 255, 1]
+        }
+      }
+    },
+    labelFont = '7pt sans-serif',
+    labelFontColor = [100, 149, 237, 0.3],
+    labelBackgroundColor = [255, 255, 255, 0.5],
+    estateLookup = false,
+    estateLookupInitialState = 'initial'
+  } = options;
+  let {
+    maxZoomLevel
   } = options;
   let urlYta;
   let urlYtaKord;
@@ -44,7 +78,6 @@ const Main = function Main(options = {}) {
   let layerName;
   let includeSearchableLayers;
   let searchableDefault;
-  let maxZoomLevel;
   let url;
   let projectionCode;
   let overlay;
@@ -52,9 +85,41 @@ const Main = function Main(options = {}) {
   // const cache = {};
   const prepOptions = {};
   const featureInfo = viewer.getControlByName('featureInfo');
+  let vectorLayer;
+  let vectorSource;
+  const buttons = [];
+  let estateButton;
+  let estateLookupOn = false;
+  let target;
+  const vectorStyles = Origo.Style.createStyleRule(featureStyles);
 
+  const setEstateActive = function setEstateActive(state) {
+    if (state) {
+      estateLookupOn = true;
+      document.getElementById(estateButton.getId()).classList.add('active');
+    } else {
+      document.getElementById(estateButton.getId()).classList.remove('active');
+      estateLookupOn = false;
+    }
+  };
 
   return Origo.ui.Component({
+    onAdd() {
+      // viewer = evt.target;
+      if (estateLookup) {
+        this.addComponents(buttons);
+      }
+      this.render();
+      this.initAutocomplete();
+      this.bindUIActions();
+      viewer.on('toggleClickInteraction', (detail) => {
+        if (detail.name === 'lmsearch' && detail.active) {
+          setEstateActive(true);
+        } else {
+          setEstateActive(false);
+        }
+      });
+    },
     onInit() {
       name = options.searchAttribute;
       northing = options.northing || undefined;
@@ -84,20 +149,59 @@ const Main = function Main(options = {}) {
       prepOptions.urlFastighet = options.urlFastighet;
       prepOptions.urlAdress = options.urlAdress;
       prepOptions.urlOrt = options.urlOrt;
+      prepOptions.elasticSearch = options.elasticSearch || undefined;
       prepOptions.municipalities = options.municipalities;
       urlYta = options.urlYta;
       urlYtaKord = options.urlYtaKordinat;
 
-      this.render();
-      this.initAutocomplete();
-      this.bindUIActions();
+      vectorSource = new VectorSource();
+      vectorLayer = new VectorLayer({
+        source: vectorSource,
+        style: vectorStyles
+      });
+      vectorLayer.set('name', 'lmsearch');
+      vectorLayer.set('group', 'none');
+      map.addLayer(vectorLayer);
+
+      if (estateLookup) {
+        estateButton = Origo.ui.Button({
+          cls: 'o-estate padding-small margin-bottom-smaller icon-smaller round light box-shadow',
+          click() {
+            // For Origo to be able to react properly based on new event system
+            document.dispatchEvent(new CustomEvent('toggleInteraction', {
+              bubbles: true,
+              detail: 'lmsearch'
+            }));
+            const detail = {
+              name: 'lmsearch',
+              active: !estateLookupOn
+            };
+            viewer.dispatch('toggleClickInteraction', detail);
+          },
+          state: estateLookupInitialState,
+          validStates: ['initial', 'active'],
+          icon: '#ic_crop_square_24px',
+          tooltipText: 'Visa fastighet',
+          tooltipPlacement: 'east',
+          methods: {}
+        });
+        estateLookupOn = estateLookupInitialState === 'active';
+        buttons.push(estateButton);
+        target = `${viewer.getMain().getMapTools().getId()}`;
+        const detail = {
+          name: 'lmsearch',
+          active: estateLookupOn
+        };
+        viewer.dispatch('toggleClickInteraction', detail);
+        // $(document).on('enableInteraction', onEnableInteraction);
+      }
     },
     onRender() {
-      this.dispatch('render');
     },
     clearSearchResults() {
       awesomplete.list = [];
       this.setSearchDb([]);
+      this.clearFeatures();
     },
     setSearchDb(data) {
       data.forEach((item) => {
@@ -113,6 +217,9 @@ const Main = function Main(options = {}) {
       if (overlay) {
         viewer.removeOverlays(overlay);
       }
+    },
+    clearFeatures() {
+      vectorSource.clear();
     },
     render() {
       const template = `<div id="o-lmsearch-wrapper" class="o-search-wrapper absolute top-center rounded-larger box-shadow bg-white" style="flex-wrap: wrap; overflow: visible;">
@@ -132,8 +239,14 @@ const Main = function Main(options = {}) {
         </button>
         </div>
         </div>`;
-      const elLayerManger = Origo.ui.dom.html(template);
+      let elLayerManger = Origo.ui.dom.html(template);
       document.getElementById(viewer.getMain().getId()).appendChild(elLayerManger);
+      elLayerManger = Origo.ui.dom.html(template);
+      if (estateLookup) {
+        const htmlString = estateButton.render();
+        const el = Origo.ui.dom.html(htmlString);
+        document.getElementById(target).appendChild(el);
+      }
       this.dispatch('render');
     },
     initAutocomplete() {
@@ -249,7 +362,7 @@ const Main = function Main(options = {}) {
         let data = [];
         console.log('making new request');
         clearSearchResults(); // to prevent showing old result while waiting for the new response
-        prepSuggestions.makeRequest(prepOptions, obj.value).then((response) => {
+        prepSuggestions.makeRequest(prepOptions, obj.value, viewer).then((response) => {
           // IE cannot handle this! use flattenData function instead.
           // var data = [...response[0], ...response[1], ...response[2]];
           data = flattenData(response);
@@ -326,13 +439,25 @@ const Main = function Main(options = {}) {
         }
       }
 
+      function clearFeatures() {
+        vectorSource.clear();
+      }
+
       function showFeatureInfo(features, objTitle, contentFeatureInfo) {
-        const obj = {};
-        obj.feature = features[0];
-        obj.title = objTitle;
-        obj.content = contentFeatureInfo;
-        clear();
-        featureInfo.render([obj], 'overlay', viewer.getMapUtils().getCenter(features[0].getGeometry()));
+        if (showFeature === 'popup') {
+          const obj = {};
+          obj.feature = features[0];
+          obj.title = objTitle;
+          obj.content = contentFeatureInfo;
+          clear();
+          featureInfo.render([obj], 'overlay', viewer.getMapUtils().getCenter(features[0].getGeometry()));
+        } else {
+          clearFeatures();
+          vectorSource.addFeature(new Feature({
+            geometry: features[0].getGeometry(),
+            name: objTitle
+          }));
+        }
         viewer.zoomToExtent(features[0].getGeometry(), maxZoomLevel);
       }
 
@@ -398,8 +523,8 @@ const Main = function Main(options = {}) {
               console.log('Found FeatureCollection with multiple features. Trying to merge them into a Multigeometry');
               if (features[0].getGeometry().getType() === 'Polygon') {
                 const multiGeom = new MultiPolygon(features[0].getGeometry());
-                features.map((feature) => {
-                  multiGeom.appendPolygon(feature.getGeometry());
+                features.forEach((feat) => {
+                  multiGeom.appendPolygon(feat.getGeometry());
                 });
                 features[0].setGeometry(multiGeom);
               } else {
@@ -433,8 +558,6 @@ const Main = function Main(options = {}) {
       }
     },
     onMapClick(evt) {
-      const coordinate = evt.coordinate;
-
       function fetchFastighetsYta(coords) {
         const urlTemp = urlYtaKord.replace('easting', coords[0]).replace('northing', coords[1]);
 
@@ -451,54 +574,133 @@ const Main = function Main(options = {}) {
         }
       }
 
-      function showFeatureInfo(features, objTitle, contentFeatureInfo) {
-        const obj = {};
-        obj.feature = features[0];
-        obj.title = objTitle;
-        obj.content = contentFeatureInfo;
-        clear();
-        featureInfo.render([obj], 'overlay', viewer.getMapUtils().getCenter(features[0].getGeometry()));
-        viewer.zoomToExtent(features[0].getGeometry(), maxZoomLevel);
+      function clearFeatures() {
+        vectorSource.clear();
       }
-      const areaPromise = fetchFastighetsYta(coordinate);
-      let featureName = '';
 
-      areaPromise.then((response) => {
-        if (typeof response.features === 'undefined') {
-          console.log('There is no data available for this object!');
-          return;
-        }
-        const format = new GeoJSON();
-        const features = format.readFeatures(response);
-        /*
-          If the response is a feature collection we read the geometries into a multipolygon instead.
-          This is becase Origo will ignore multiple geometries and only display the first if we do not do it this way
-          A Better solution would probably be to patch origo so that it handles this in a better way but it's not a
-          well defined way to do this in a generic way as there are multiple features with both multiple attributes as well as geometries.
-          How should that be handled? In this function, at least we know from what service the data comes from.
-        */
-        if (features.length > 1) {
-          console.log('Found FeatureCollection with multiple features. Trying to merge them into a Multigeometry');
-          if (features[0].getGeometry().getType() === 'Polygon') {
-            const multiGeom = new MultiPolygon(features[0].getGeometry());
-            features.map((feature) => {
-              multiGeom.appendPolygon(feature.getGeometry());
+      function showFeatureInfo(features, objTitle, contentFeatureInfo, coordinate) {
+        const curExtent = viewer.getExtent();
+        clearFeatures();
+        if (showFeature === 'geometryOnly') {
+          if (features.length > 1) {
+            features.forEach((feature) => {
+              // Add the geometry of part of the estate
+              vectorSource.addFeature(feature);
+              // Get the shorthand for estatenumber part f.ex. 2:19>5
+              const nameArr = feature.getProperties().name.split(' ');
+              let strEstate = '';
+              switch (nameArr.length) {
+                case 5:
+                  strEstate = `${nameArr[2]}>${nameArr[4]}`;
+                  break;
+                case 6:
+                  strEstate = `${nameArr[3]}>${nameArr[5]}`;
+                  break;
+                case 7:
+                  strEstate = `${nameArr[4]}>${nameArr[6]}`;
+                  break;
+                default:
+                  strEstate = `${feature.getProperties().name.replace(' Enhetesområde ', '>')}`;
+              }
+              // Add the label of part of the estate on the center coordinate of the feature
+              const newStyle = new Style({
+                text: new Text({
+                  text: strEstate,
+                  font: labelFont,
+                  stroke: new Stroke({
+                    color: labelFontColor
+                  }),
+                  backgroundFill: new Fill({
+                    color: labelBackgroundColor
+                  }),
+                  overflow: true
+                })
+              });
+              const newFeature = new Feature();
+              newFeature.setGeometry(new Point(viewer.getMapUtils().getCenter(feature.getGeometry())));
+              newFeature.setStyle(newStyle);
+              vectorSource.addFeature(newFeature);
             });
-            features[0].setGeometry(multiGeom);
           } else {
-            console.log('FeatureCollection does not contain Polygons, we have not implemented this for Points or Lines');
+            // Add the geometry of a estate that is a single geometry
+            vectorSource.addFeature(features[0]);
           }
+          // Add the label of estate on the coordinate the user clicked, so that it is clearly visible for the user
+          const clickStyle = new Style({
+            text: new Text({
+              text: `${features[0].getProperties().name.substring(0, features[0].getProperties().name.indexOf('Enhetesomr'))}`,
+              font: labelFont,
+              stroke: new Stroke({
+                color: labelFontColor
+              }),
+              backgroundFill: new Fill({
+                color: labelBackgroundColor
+              }),
+              overflow: true
+            })
+          });
+          const clickFeature = new Feature();
+          clickFeature.setGeometry(new Point(coordinate));
+          clickFeature.setStyle(clickStyle);
+          vectorSource.addFeature(clickFeature);
+        } else {
+          const obj = {};
+          obj.feature = features[0];
+          obj.title = objTitle;
+          obj.content = contentFeatureInfo;
+          clear();
+          // Set the popup on the feature to closest point from the northwest point of the extent, so that the popup minimal block the feature.
+          featureInfo.render([obj], 'overlay', features[0].getGeometry().getClosestPoint([curExtent[0], curExtent[3]]));
+          // featureInfo.render([obj], 'overlay', viewer.getMapUtils().getCenter(features[0].getGeometry()));
+          // viewer.zoomToExtent(features[0].getGeometry(), maxZoomLevel);
         }
-        const featureProps = features[0].getProperties();
-        featureName = featureProps.name;
-        featureName = featureName.substring(0, featureName.indexOf('Enhetesomr'));
-        // Make sure the response is wrapped in a html element
-        const content = viewer.getUtils().createElement('div', featureName);
-        // content = prepSuggestions.createElement('div', data[contentAttribute]);
-        showFeatureInfo(features, 'Fastighet', content);
-      }).catch((err) => {
-        console.error(err);
-      });
+      }
+
+      if (estateLookupOn) {
+        // console.log(evt);
+        const coordinate = evt.coordinate;
+        const areaPromise = fetchFastighetsYta(coordinate);
+        let featureName = '';
+
+        areaPromise.then((response) => {
+          if (typeof response.features === 'undefined') {
+            console.log('There is no data available for this object!');
+            return;
+          }
+          const format = new GeoJSON();
+          const features = format.readFeatures(response);
+          /*
+            If the response is a feature collection we read the geometries into a multipolygon instead.
+            This is becase Origo will ignore multiple geometries and only display the first if we do not do it this way
+            A Better solution would probably be to patch origo so that it handles this in a better way but it's not a
+            well defined way to do this in a generic way as there are multiple features with both multiple attributes as well as geometries.
+            How should that be handled? In this function, at least we know from what service the data comes from.
+          */
+          if (features.length > 1 && showFeature === 'popup') {
+            console.log('Found FeatureCollection with multiple features. Trying to merge them into a Multigeometry');
+            if (features[0].getGeometry().getType() === 'Polygon') {
+              const multiGeom = new MultiPolygon(features[0].getGeometry());
+              features.forEach((feature) => {
+                const polygon = new Polygon(feature.getGeometry().getCoordinates());
+                polygon.set('description', feature.getProperties().name);
+                multiGeom.appendPolygon(polygon);
+              });
+              features[0].setGeometry(multiGeom);
+            } else {
+              console.log('FeatureCollection does not contain Polygons, we have not implemented this for Points or Lines');
+            }
+          }
+          const featureProps = features[0].getProperties();
+          featureName = featureProps.name;
+          featureName = featureName.substring(0, featureName.indexOf('Enhetesomr'));
+          // Make sure the response is wrapped in a html element
+          const content = viewer.getUtils().createElement('div', featureName);
+          // content = prepSuggestions.createElement('div', data[contentAttribute]);
+          showFeatureInfo(features, 'Fastighet', content, coordinate);
+        }).catch((err) => {
+          console.error(err);
+        });
+      }
     },
     bindUIActions() {
       document.getElementById('hjl').addEventListener('awesomplete-selectcomplete', this.selectHandler);
@@ -522,9 +724,7 @@ const Main = function Main(options = {}) {
         $('.o-search-wrapper').addClass('active');
         window.dispatchEvent(new Event('resize'));
       });
-      if (estateLookup) {
-        map.on('click', this.onMapClick);
-      }
+      map.on('click', this.onMapClick);
     },
     renderList(suggestion, input) {
       const item = searchDb[suggestion.label] || {};
