@@ -98,7 +98,9 @@ const Main = function Main(options = {}) {
       estateLookupOn = true;
       document.getElementById(estateButton.getId()).classList.add('active');
     } else {
-      document.getElementById(estateButton.getId()).classList.remove('active');
+      if (typeof estateButton !== 'undefined') {
+        document.getElementById(estateButton.getId()).classList.remove('active');
+      }
       estateLookupOn = false;
     }
   };
@@ -117,6 +119,7 @@ const Main = function Main(options = {}) {
           setEstateActive(true);
         } else {
           setEstateActive(false);
+          this.clearSearchResults();
         }
       });
     },
