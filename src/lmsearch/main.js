@@ -527,7 +527,10 @@ const Main = function Main(options = {}) {
               if (features[0].getGeometry().getType() === 'Polygon') {
                 const multiGeom = new MultiPolygon(features[0].getGeometry());
                 features.forEach((feat) => {
-                  multiGeom.appendPolygon(feat.getGeometry());
+                  // Make sure that geometry is polygon in the case that it might be a point
+                  if (feat.getGeometry().getType() === 'Polygon') {
+                    multiGeom.appendPolygon(feat.getGeometry());
+                  }
                 });
                 features[0].setGeometry(multiGeom);
               } else {
