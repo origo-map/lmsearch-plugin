@@ -26,7 +26,10 @@ const Lmsearch = function Lmsearch(options = {}) {
     urlOrt,
     urlYta,
     urlYtaKordinat,
-    elasticSearch
+    elasticSearch,
+    pageEstateReportWidth,
+    pageEstateReportHeight,
+    pageEstateReportUrl
   } = options;
 
   let viewer;
@@ -62,7 +65,10 @@ const Lmsearch = function Lmsearch(options = {}) {
         urlOrt,
         urlYta,
         urlYtaKordinat,
-        elasticSearch
+        elasticSearch,
+        pageEstateReportWidth,
+        pageEstateReportHeight,
+        pageEstateReportUrl
       });
       this.addComponent(search);
       this.render();
