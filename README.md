@@ -38,6 +38,7 @@ Requires Origo 2.1.1 or later and a Origoserver
           "estateLookupInitialState": "initial",
           "minLength": 4,
           "limit": 10,
+          "maxZoomLevel": 10,
           "municipalities": "Sundsvall,Hudiksvall",
           "showFeature": "geometryOnly",
           "featureStyles": {
@@ -109,6 +110,8 @@ The configuration options explained:
 - minLength - specifies the minimum length of how many characters should be entered before search, defualt is 4.
 
 - limit - specifies how many matches should be shown. defualt is 9.
+
+- maxZoomLevel - specifies which zoom level should be used when zooming in to when clicking on search hits. default is lowest resolution specified in config.
 
 - municipalities - sets in which municipalities the search should be limited to. The value is a string delimited with comma sign.
 
