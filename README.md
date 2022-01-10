@@ -155,6 +155,8 @@ The configuration options explained:
 
 - pageEstateReportUrl - the URL to the page for the estate report, default is empty string.
 
+- pageEstateIconText - the text which should be displayed withen estate report icon, default is `<text x="5" y="40" font-size="45" font-family="Arial" fill="black">FI</text>`.
+
 #### Coordinate reference systems
 
 The default coordinate reference system is SWEREF99 TM (EPSG:3006).
