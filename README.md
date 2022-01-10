@@ -75,7 +75,10 @@ Requires Origo 2.1.1 or later and a Origoserver
             "searchIn": ["_source.properties.TEXT","_source.properties.PLANNUMMER"],
             "id": "_source.id",
             "geometry": "_source.geometry"
-          }
+          },
+          "pageEstateReportWidth": "700px",
+          "pageEstateReportHeight": "500px",
+          "pageEstateReportUrl": "https://example.com/origoserver/estate/inskrivning?objektid="
         });
         viewer.addComponent(lmsearch);
     	});
@@ -142,6 +145,12 @@ The configuration options explained:
 		id - the property which is to be used as a id to be able to exclude duplicates in the search result.
 
 		geometry - the property which holds the geometry.
+
+- pageEstateReportWidth - the width of the page for the estate report, default is '700px'
+
+- pageEstateReportHeight - the height of the page for the estate report, default is '500px'
+
+- pageEstateReportUrl - the URL to the page for the estate report, default is empty string.
 
 #### Coordinate reference systems
 

@@ -11,6 +11,7 @@ import Stroke from 'ol/style/Stroke';
 import Fill from 'ol/style/Fill';
 import Text from 'ol/style/Text';
 import Style from 'ol/style/Style';
+import Icon from 'ol/style/Icon';
 import Awesomplete from 'awesomplete';
 import $ from 'jquery';
 import prepSuggestions from './prepsuggestions';
@@ -51,7 +52,10 @@ const Main = function Main(options = {}) {
     labelFontColor = [100, 149, 237, 0.3],
     labelBackgroundColor = [255, 255, 255, 0.5],
     estateLookup = false,
-    estateLookupInitialState = 'initial'
+    estateLookupInitialState = 'initial',
+    pageEstateReportWidth = '700px',
+    pageEstateReportHeight = '500px',
+    pageEstateReportUrl = ''
   } = options;
   let {
     maxZoomLevel
@@ -92,6 +96,19 @@ const Main = function Main(options = {}) {
   let estateLookupOn = false;
   let target;
   const vectorStyles = Origo.Style.createStyleRule(featureStyles);
+  const svgFI = '<svg width="50" height="50" version="1.1" xmlns="http://www.w3.org/2000/svg">'
+      + '<rect width="50" height="50" style="fill:rgba(255,255,255,0.5);stroke-width:5;stroke:rgb(0,0,0)" />'
+      + '<text x="5" y="40" font-size="40" font-family="Arial" fill="black">FI</text>'
+      + '</svg>';
+  const iconStyle = new Style({
+    image: new Icon({
+      src: `data:image/svg+xml;utf8,${svgFI}`,
+      anchor: [0.5, 70],
+      anchorXUnits: 'fraction',
+      anchorYUnits: 'pixels',
+      scale: 1
+    })
+  });
 
   const setEstateActive = function setEstateActive(state) {
     if (state) {
@@ -446,7 +463,7 @@ const Main = function Main(options = {}) {
         vectorSource.clear();
       }
 
-      function showFeatureInfo(features, objTitle, contentFeatureInfo) {
+      function showFeatureInfo(features, objTitle, contentFeatureInfo, objectId) {
         if (showFeature === 'popup') {
           const obj = {};
           obj.feature = features[0];
@@ -460,6 +477,16 @@ const Main = function Main(options = {}) {
             geometry: features[0].getGeometry(),
             name: objTitle
           }));
+          if (typeof objectId !== 'undefined' && pageEstateReportUrl !== '') {
+            const iconFeature = new Feature({
+              geometry: new Point(viewer.getMapUtils().getCenter(features[0].getGeometry())),
+              name: 'Fastighetsinformation',
+              objektidentitet: objectId,
+              pageEstateReport: `<iframe src="${pageEstateReportUrl}${objectId}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`
+            });
+            iconFeature.setStyle(iconStyle);
+            vectorSource.addFeature(iconFeature);
+          }
         }
         viewer.zoomToExtent(features[0].getGeometry(), maxZoomLevel);
       }
@@ -540,7 +567,7 @@ const Main = function Main(options = {}) {
             // Make sure the response is wrapped in a html element
             content = viewer.getUtils().createElement('div', data[contentAttribute]);
             // content = prepSuggestions.createElement('div', data[contentAttribute]);
-            showFeatureInfo(features, data[titleAttribute], content);
+            showFeatureInfo(features, data[titleAttribute], content, objectId);
           }).catch((err) => {
             console.error(err.statusText);
           });
@@ -649,6 +676,16 @@ const Main = function Main(options = {}) {
           clickFeature.setGeometry(new Point(coordinate));
           clickFeature.setStyle(clickStyle);
           vectorSource.addFeature(clickFeature);
+          if (typeof features[0].getProperties().objektidentitet !== 'undefined' && pageEstateReportUrl !== '') {
+            const iconFeature = new Feature({
+              geometry: new Point(coordinate),
+              name: 'Fastighetsinformation',
+              objektidentitet: features[0].getProperties().objektidentitet,
+              pageEstateReport: `<iframe src="${pageEstateReportUrl}${features[0].getProperties().objektidentitet}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`
+            });
+            iconFeature.setStyle(iconStyle);
+            vectorSource.addFeature(iconFeature);
+          }
         } else {
           const obj = {};
           obj.feature = features[0];
@@ -662,8 +699,20 @@ const Main = function Main(options = {}) {
         }
       }
 
-      if (estateLookupOn) {
-        // console.log(evt);
+      let estateInfoClick = false;
+      map.forEachFeatureAtPixel(evt.pixel,
+        (feature) => {
+          if (typeof feature.getProperties().pageEstateReport !== 'undefined' && pageEstateReportUrl !== '') {
+            Origo.ui.Modal({
+              title: feature.getProperties().name,
+              content: feature.getProperties().pageEstateReport,
+              style: 'width:auto;height:auto;resize:both;display:flex;flex-flow:column;',
+              target: viewer.getId()
+            });
+            estateInfoClick = true;
+          }
+        });
+      if (estateLookupOn && !estateInfoClick) {
         const coordinate = evt.coordinate;
         const areaPromise = fetchFastighetsYta(coordinate);
         let featureName = '';
