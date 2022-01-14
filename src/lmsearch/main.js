@@ -55,7 +55,8 @@ const Main = function Main(options = {}) {
     estateLookupInitialState = 'initial',
     pageEstateReportWidth = '700px',
     pageEstateReportHeight = '500px',
-    pageEstateReportUrl = ''
+    pageEstateReportUrl = '',
+    pageEstateIconText = '<text x="5" y="40" font-size="45" font-family="Arial" fill="black">FI</text>'
   } = options;
   let {
     maxZoomLevel
@@ -96,10 +97,7 @@ const Main = function Main(options = {}) {
   let estateLookupOn = false;
   let target;
   const vectorStyles = Origo.Style.createStyleRule(featureStyles);
-  const svgFI = '<svg width="50" height="50" version="1.1" xmlns="http://www.w3.org/2000/svg">'
-      + '<rect width="50" height="50" style="fill:rgba(255,255,255,0.5);stroke-width:5;stroke:rgb(0,0,0)" />'
-      + '<text x="5" y="40" font-size="40" font-family="Arial" fill="black">FI</text>'
-      + '</svg>';
+  const svgFI = `<svg width="50" height="50" version="1.1" xmlns="http://www.w3.org/2000/svg"><rect width="50" height="50" style="fill:rgba(255,255,255,0.5);stroke-width:5;stroke:rgb(0,0,0)" />${pageEstateIconText}</svg>`;
   const iconStyle = new Style({
     image: new Icon({
       src: `data:image/svg+xml;utf8,${svgFI}`,

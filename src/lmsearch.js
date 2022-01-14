@@ -29,7 +29,8 @@ const Lmsearch = function Lmsearch(options = {}) {
     elasticSearch,
     pageEstateReportWidth,
     pageEstateReportHeight,
-    pageEstateReportUrl
+    pageEstateReportUrl,
+    pageEstateIconText
   } = options;
 
   let viewer;
@@ -68,7 +69,8 @@ const Lmsearch = function Lmsearch(options = {}) {
         elasticSearch,
         pageEstateReportWidth,
         pageEstateReportHeight,
-        pageEstateReportUrl
+        pageEstateReportUrl,
+        pageEstateIconText
       });
       this.addComponent(search);
       this.render();
