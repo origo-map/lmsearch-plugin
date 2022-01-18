@@ -79,7 +79,9 @@ Requires Origo 2.1.1 or later and a Origoserver
           },
           "pageEstateReportWidth": "700px",
           "pageEstateReportHeight": "500px",
-          "pageEstateReportUrl": "https://example.com/origoserver/estate/inskrivning?objektid="
+          "pageEstateReportUrl": "https://example.com/origoserver/estate/inskrivning?objektid=",
+          "pageEstateIconText": '<text font-size="1em" font-family="Arial" font-weight="bold" fill="black"><tspan x="5" dy="1.2em">Fastighets-</tspan><tspan x="5" dy="1.2em">rapport</tspan></text>',
+          "pageEstateIconSize": [96, 48]
         });
         viewer.addComponent(lmsearch);
     	});
@@ -156,6 +158,8 @@ The configuration options explained:
 - pageEstateReportUrl - the URL to the page for the estate report, default is empty string.
 
 - pageEstateIconText - the text which should be displayed withen estate report icon, default is `<text x="5" y="40" font-size="45" font-family="Arial" fill="black">FI</text>`.
+
+- pageEstateIconSize - an array with the width and height, in pixels, to use for the estate icon rectangle, default is `[50, 50]`.
 
 #### Coordinate reference systems
 
