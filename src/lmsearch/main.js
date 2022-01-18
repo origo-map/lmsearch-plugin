@@ -334,7 +334,7 @@ const Main = function Main(options = {}) {
 
       function dbToList() {
         const items = Object.keys(searchDb);
-        return items.map(item => searchDb[item]);
+        return items.map((item) => searchDb[item]);
       }
 
       function setSearchDb(data) {
@@ -352,10 +352,11 @@ const Main = function Main(options = {}) {
         setSearchDb([]);
       }
 
-      const handler = function func(data) {
-        if (data.length === 0) {
+      function responseHandler(data) {
+        let result = data;
+        if (result.length === 0) {
           console.log('Ingen träff');
-          data = [{
+          result = [{
             NAMN: ' ',
             value: ' ',
             layer: 'Ingen träff'
@@ -365,17 +366,30 @@ const Main = function Main(options = {}) {
         list = [];
         searchDb = {};
 
-        if (data.length) {
-          setSearchDb(data);
+        if (result.length) {
+          setSearchDb(result);
           if (name && layerNameAttribute) {
             list = groupToList(groupDb(searchDb));
           } else {
-            list = dbToList(data);
+            list = dbToList(result);
           }
           awesomplete.list = list;
           awesomplete.evaluate();
         }
-      };
+      }
+
+      // we need to use this function bcuz IE does not understand spread syntax!
+      function flattenData(data) {
+        const flatData = [];
+        for (let i = 0; i < data.length; i += 1) {
+          const item = data[i];
+          for (let j = 0; j < item.length; j += 1) {
+            const innerItem = item[j];
+            flatData.push(innerItem);
+          }
+        }
+        return flatData;
+      }
 
       function makeRequest2(handler, obj) {
         let data = [];
@@ -401,19 +415,6 @@ const Main = function Main(options = {}) {
       }
       // }
 
-      // we need to use this function bcuz IE does not understand spread syntax!
-      function flattenData(data) {
-        const flatData = [];
-        for (let i = 0; i < data.length; i += 1) {
-          const item = data[i];
-          for (let j = 0; j < item.length; j += 1) {
-            const innerItem = item[j];
-            flatData.push(innerItem);
-          }
-        }
-        return flatData;
-      }
-
       const delay = (function delay() {
         let timer = 0;
         return function timeout(callback, ms) {
@@ -429,7 +430,7 @@ const Main = function Main(options = {}) {
           if (keyCode in keyCodes) {
             // empty
           } else {
-            delay(() => { makeRequest2(handler, that); }, 500);
+            delay(() => { makeRequest2(responseHandler, that); }, 500);
           }
         }
       });
