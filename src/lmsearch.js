@@ -30,7 +30,8 @@ const Lmsearch = function Lmsearch(options = {}) {
     pageEstateReportWidth,
     pageEstateReportHeight,
     pageEstateReportUrl,
-    pageEstateIconText
+    pageEstateIconText,
+    pageEstateIconSize
   } = options;
 
   let viewer;
@@ -70,7 +71,8 @@ const Lmsearch = function Lmsearch(options = {}) {
         pageEstateReportWidth,
         pageEstateReportHeight,
         pageEstateReportUrl,
-        pageEstateIconText
+        pageEstateIconText,
+        pageEstateIconSize
       });
       this.addComponent(search);
       this.render();

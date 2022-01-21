@@ -56,7 +56,8 @@ const Main = function Main(options = {}) {
     pageEstateReportWidth = '700px',
     pageEstateReportHeight = '500px',
     pageEstateReportUrl = '',
-    pageEstateIconText = '<text x="5" y="40" font-size="45" font-family="Arial" fill="black">FI</text>'
+    pageEstateIconText = '<text x="5" y="40" font-size="45" font-family="Arial" fill="black">FI</text>',
+    pageEstateIconSize = [50, 50]
   } = options;
   let {
     maxZoomLevel
@@ -97,7 +98,7 @@ const Main = function Main(options = {}) {
   let estateLookupOn = false;
   let target;
   const vectorStyles = Origo.Style.createStyleRule(featureStyles);
-  const svgFI = `<svg width="50" height="50" version="1.1" xmlns="http://www.w3.org/2000/svg"><rect width="50" height="50" style="fill:rgba(255,255,255,0.5);stroke-width:5;stroke:rgb(0,0,0)" />${pageEstateIconText}</svg>`;
+  const svgFI = `<svg width="${pageEstateIconSize[0]}" height="${pageEstateIconSize[1]}" version="1.1" xmlns="http://www.w3.org/2000/svg"><rect width="${pageEstateIconSize[0]}" height="${pageEstateIconSize[1]}" style="fill:rgba(255,255,255,0.5);stroke-width:5;stroke:rgb(0,0,0)" />${pageEstateIconText}</svg>`;
   const iconStyle = new Style({
     image: new Icon({
       src: `data:image/svg+xml;utf8,${svgFI}`,
@@ -333,7 +334,7 @@ const Main = function Main(options = {}) {
 
       function dbToList() {
         const items = Object.keys(searchDb);
-        return items.map(item => searchDb[item]);
+        return items.map((item) => searchDb[item]);
       }
 
       function setSearchDb(data) {
@@ -351,10 +352,11 @@ const Main = function Main(options = {}) {
         setSearchDb([]);
       }
 
-      const handler = function func(data) {
-        if (data.length === 0) {
+      function responseHandler(data) {
+        let result = data;
+        if (result.length === 0) {
           console.log('Ingen träff');
-          data = [{
+          result = [{
             NAMN: ' ',
             value: ' ',
             layer: 'Ingen träff'
@@ -364,17 +366,30 @@ const Main = function Main(options = {}) {
         list = [];
         searchDb = {};
 
-        if (data.length) {
-          setSearchDb(data);
+        if (result.length) {
+          setSearchDb(result);
           if (name && layerNameAttribute) {
             list = groupToList(groupDb(searchDb));
           } else {
-            list = dbToList(data);
+            list = dbToList(result);
           }
           awesomplete.list = list;
           awesomplete.evaluate();
         }
-      };
+      }
+
+      // we need to use this function bcuz IE does not understand spread syntax!
+      function flattenData(data) {
+        const flatData = [];
+        for (let i = 0; i < data.length; i += 1) {
+          const item = data[i];
+          for (let j = 0; j < item.length; j += 1) {
+            const innerItem = item[j];
+            flatData.push(innerItem);
+          }
+        }
+        return flatData;
+      }
 
       function makeRequest2(handler, obj) {
         let data = [];
@@ -400,19 +415,6 @@ const Main = function Main(options = {}) {
       }
       // }
 
-      // we need to use this function bcuz IE does not understand spread syntax!
-      function flattenData(data) {
-        const flatData = [];
-        for (let i = 0; i < data.length; i += 1) {
-          const item = data[i];
-          for (let j = 0; j < item.length; j += 1) {
-            const innerItem = item[j];
-            flatData.push(innerItem);
-          }
-        }
-        return flatData;
-      }
-
       const delay = (function delay() {
         let timer = 0;
         return function timeout(callback, ms) {
@@ -428,7 +430,7 @@ const Main = function Main(options = {}) {
           if (keyCode in keyCodes) {
             // empty
           } else {
-            delay(() => { makeRequest2(handler, that); }, 500);
+            delay(() => { makeRequest2(responseHandler, that); }, 500);
           }
         }
       });
