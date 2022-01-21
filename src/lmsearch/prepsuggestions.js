@@ -170,7 +170,8 @@ const extractAddresses = function extractAddresses(urlAdress, q, limit) {
     });
     // this condition is checked because of the fault in the response from lm.
     // for example for the query 'stor' we get Brunne and Hundsjö in the answer also!!!
-    removeErroniousComponents(searchResultsBasedOnStreetName, q);
+    // Removed this since it removed good matches
+    // removeErroniousComponents(searchResultsBasedOnStreetName, q);
     do {
       for (const streetName in searchResultsBasedOnStreetName) {
         let nextObj = searchResultsBasedOnStreetName[streetName][i];
@@ -180,7 +181,6 @@ const extractAddresses = function extractAddresses(urlAdress, q, limit) {
       }
       i += 1;
     } while (preliminaryMatches.length < limit && i <= preliminaryMatches.length && i < 100);
-
     // array objects are transformed into standards geojson objects and the pushed to matches array
     const matches = preliminaryMatches.map(arrObj => ({
       NAMN: arrObj[1],
