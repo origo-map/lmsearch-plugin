@@ -1,6 +1,5 @@
 const { merge } = require('webpack-merge');
 const common = require('./webpack.common.js');
-const WriteFilePlugin = require('write-file-webpack-plugin');
 
 module.exports = merge(common, {
   output: {
@@ -15,23 +14,22 @@ module.exports = merge(common, {
   module: {
     rules: [{
       test: /\.scss$/,
-      use: [{
-        loader: 'style-loader'
-      },
-      {
-        loader: 'css-loader'
-      },
-      {
-        loader: 'sass-loader'
-      }
-      ]
+      use: ['style-loader','css-loader','sass-loader']
     }]
   },
-  plugins: [
-    new WriteFilePlugin()
-  ],
   devServer: {
-    contentBase: './',
-    port: 9008
+    devMiddleware: {
+      publicPath: '/build/js',
+      serverSideRender: true,
+      writeToDisk: true,
+    },
+    static: './',
+    port: 9008,
+    liveReload: true,
+    allowedHosts: 'auto',
+    headers: {
+      'Access-Control-Allow-Origin': 'http://localhost:9966',
+      'Access-Control-Allow-Credentials': 'true',
+    },
   }
 });
