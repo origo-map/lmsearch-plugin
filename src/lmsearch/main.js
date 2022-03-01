@@ -1,17 +1,4 @@
 import Origo from 'Origo';
-import Overlay from 'ol/overlay';
-import Feature from 'ol/Feature';
-import VectorSource from 'ol/source/Vector';
-import VectorLayer from 'ol/layer/Vector';
-import Point from 'ol/geom/Point';
-import Polygon from 'ol/geom/Polygon';
-import MultiPolygon from 'ol/geom/MultiPolygon';
-import GeoJSON from 'ol/format/geojson';
-import Stroke from 'ol/style/Stroke';
-import Fill from 'ol/style/Fill';
-import Text from 'ol/style/Text';
-import Style from 'ol/style/Style';
-import Icon from 'ol/style/Icon';
 import Awesomplete from 'awesomplete';
 import $ from 'jquery';
 import prepSuggestions from './prepsuggestions';
@@ -99,8 +86,8 @@ const Main = function Main(options = {}) {
   let target;
   const vectorStyles = Origo.Style.createStyleRule(featureStyles);
   const svgFI = `<svg width="${pageEstateIconSize[0]}" height="${pageEstateIconSize[1]}" version="1.1" xmlns="http://www.w3.org/2000/svg"><rect width="${pageEstateIconSize[0]}" height="${pageEstateIconSize[1]}" style="fill:rgba(255,255,255,0.5);stroke-width:5;stroke:rgb(0,0,0)" />${pageEstateIconText}</svg>`;
-  const iconStyle = new Style({
-    image: new Icon({
+  const iconStyle = new Origo.ol.style.Style({
+    image: new Origo.ol.style.Icon({
       src: `data:image/svg+xml;utf8,${svgFI}`,
       anchor: [0.5, 70],
       anchorXUnits: 'fraction',
@@ -173,8 +160,8 @@ const Main = function Main(options = {}) {
       urlYta = options.urlYta;
       urlYtaKord = options.urlYtaKordinat;
 
-      vectorSource = new VectorSource();
-      vectorLayer = new VectorLayer({
+      vectorSource = new Origo.ol.source.Vector();
+      vectorLayer = new Origo.ol.layer.Vector({
         source: vectorSource,
         style: vectorStyles
       });
@@ -473,13 +460,13 @@ const Main = function Main(options = {}) {
           featureInfo.render([obj], 'overlay', viewer.getMapUtils().getCenter(features[0].getGeometry()));
         } else {
           clearFeatures();
-          vectorSource.addFeature(new Feature({
+          vectorSource.addFeature(new Origo.ol.Feature({
             geometry: features[0].getGeometry(),
             name: objTitle
           }));
           if (typeof objectId !== 'undefined' && pageEstateReportUrl !== '') {
-            const iconFeature = new Feature({
-              geometry: new Point(viewer.getMapUtils().getCenter(features[0].getGeometry())),
+            const iconFeature = new Origo.ol.Feature({
+              geometry: new Origo.ol.geom.Point(viewer.getMapUtils().getCenter(features[0].getGeometry())),
               name: 'Fastighetsinformation',
               objektidentitet: objectId,
               pageEstateReport: `<iframe src="${pageEstateReportUrl}${objectId}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`
@@ -494,7 +481,7 @@ const Main = function Main(options = {}) {
       function showOverlay(dataOverlay, coordOverlay) {
         clear();
         const newPopup = Origo.popup('#o-map');
-        overlay = new Overlay({
+        overlay = new Origo.ol.Overlay({
           element: newPopup.getEl()
         });
 
@@ -507,7 +494,7 @@ const Main = function Main(options = {}) {
           title
         });
         newPopup.setVisibility(true);
-        viewer.zoomToExtent(new Point(coordOverlay), maxZoomLevel);
+        viewer.zoomToExtent(new Origo.ol.geom.Point(coordOverlay), maxZoomLevel);
       }
 
       if (layerNameAttribute && idAttribute) {
@@ -540,7 +527,7 @@ const Main = function Main(options = {}) {
               alert('There is no data available for this object!');
               return;
             }
-            const format = new GeoJSON();
+            const format = new Origo.ol.format.GeoJSON();
             const features = format.readFeatures(response);
             /*
               If the response is a feature collection we read the geometries into a multipolygon instead.
@@ -552,7 +539,7 @@ const Main = function Main(options = {}) {
             if (features.length > 1) {
               console.log('Found FeatureCollection with multiple features. Trying to merge them into a Multigeometry');
               if (features[0].getGeometry().getType() === 'Polygon') {
-                const multiGeom = new MultiPolygon(features[0].getGeometry());
+                const multiGeom = new Origo.ol.geom.MultiPolygon(features[0].getGeometry());
                 features.forEach((feat) => {
                   // Make sure that geometry is polygon in the case that it might be a point
                   if (feat.getGeometry().getType() === 'Polygon') {
@@ -636,21 +623,21 @@ const Main = function Main(options = {}) {
                   strEstate = `${feature.getProperties().name.replace(' Enhetesområde ', '>')}`;
               }
               // Add the label of part of the estate on the center coordinate of the feature
-              const newStyle = new Style({
-                text: new Text({
+              const newStyle = new Origo.ol.style.Style({
+                text: new Origo.ol.style.Text({
                   text: strEstate,
                   font: labelFont,
-                  stroke: new Stroke({
+                  stroke: new Origo.ol.style.Stroke({
                     color: labelFontColor
                   }),
-                  backgroundFill: new Fill({
+                  backgroundFill: new Origo.ol.style.Fill({
                     color: labelBackgroundColor
                   }),
                   overflow: true
                 })
               });
-              const newFeature = new Feature();
-              newFeature.setGeometry(new Point(viewer.getMapUtils().getCenter(feature.getGeometry())));
+              const newFeature = new Origo.ol.Feature();
+              newFeature.setGeometry(new Origo.ol.geom.Point(viewer.getMapUtils().getCenter(feature.getGeometry())));
               newFeature.setStyle(newStyle);
               vectorSource.addFeature(newFeature);
             });
@@ -659,26 +646,26 @@ const Main = function Main(options = {}) {
             vectorSource.addFeature(features[0]);
           }
           // Add the label of estate on the coordinate the user clicked, so that it is clearly visible for the user
-          const clickStyle = new Style({
-            text: new Text({
+          const clickStyle = new Origo.ol.style.Style({
+            text: new Origo.ol.style.Text({
               text: `${features[0].getProperties().name.substring(0, features[0].getProperties().name.indexOf('Enhetesomr'))}`,
               font: labelFont,
-              stroke: new Stroke({
+              stroke: new Origo.ol.style.Stroke({
                 color: labelFontColor
               }),
-              backgroundFill: new Fill({
+              backgroundFill: new Origo.ol.style.Fill({
                 color: labelBackgroundColor
               }),
               overflow: true
             })
           });
-          const clickFeature = new Feature();
-          clickFeature.setGeometry(new Point(coordinate));
+          const clickFeature = new Origo.ol.Feature();
+          clickFeature.setGeometry(new Origo.ol.geom.Point(coordinate));
           clickFeature.setStyle(clickStyle);
           vectorSource.addFeature(clickFeature);
           if (typeof features[0].getProperties().objektidentitet !== 'undefined' && pageEstateReportUrl !== '') {
-            const iconFeature = new Feature({
-              geometry: new Point(coordinate),
+            const iconFeature = new Origo.ol.Feature({
+              geometry: new Origo.ol.geom.Point(coordinate),
               name: 'Fastighetsinformation',
               objektidentitet: features[0].getProperties().objektidentitet,
               pageEstateReport: `<iframe src="${pageEstateReportUrl}${features[0].getProperties().objektidentitet}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`
@@ -722,7 +709,7 @@ const Main = function Main(options = {}) {
             console.log('There is no data available for this object!');
             return;
           }
-          const format = new GeoJSON();
+          const format = new Origo.ol.format.GeoJSON();
           const features = format.readFeatures(response);
           /*
             If the response is a feature collection we read the geometries into a multipolygon instead.
@@ -734,9 +721,9 @@ const Main = function Main(options = {}) {
           if (features.length > 1 && showFeature === 'popup') {
             console.log('Found FeatureCollection with multiple features. Trying to merge them into a Multigeometry');
             if (features[0].getGeometry().getType() === 'Polygon') {
-              const multiGeom = new MultiPolygon(features[0].getGeometry());
+              const multiGeom = new Origo.ol.geom.MultiPolygon(features[0].getGeometry());
               features.forEach((feature) => {
-                const polygon = new Polygon(feature.getGeometry().getCoordinates());
+                const polygon = new Origo.ol.geom.Polygon(feature.getGeometry().getCoordinates());
                 polygon.set('description', feature.getProperties().name);
                 multiGeom.appendPolygon(polygon);
               });
