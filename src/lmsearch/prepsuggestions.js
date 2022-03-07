@@ -280,17 +280,18 @@ const extractES = function extractES(elasticSearch, q, limit, viewer) {
         let found = false;
         elasticSearch.searchIn.forEach((search) => {
           found = substrRegex.test(getAttribute(obj, search));
+          if (found) {
+            matches.push({
+              NAMN: getAttribute(obj, elasticSearch.text),
+              id: getAttribute(obj, elasticSearch.id),
+              // "TYPE": "hallstakartan.tk_s_ads_p",
+              layer: elasticSearch.name,
+              st_astext: viewer.getMapUtils().geojsonToWkt(getAttribute(obj, elasticSearch.geometry)),
+              geometry_format: 'WKT'
+            });
+          }
+          found = false;
         });
-        if (found) {
-          matches.push({
-            NAMN: getAttribute(obj, elasticSearch.text),
-            id: getAttribute(obj, elasticSearch.id),
-            // "TYPE": "hallstakartan.tk_s_ads_p",
-            layer: elasticSearch.name,
-            st_astext: viewer.getMapUtils().geojsonToWkt(getAttribute(obj, elasticSearch.geometry)),
-            geometry_format: 'WKT'
-          });
-        }
       });
       if (matches.length < limit) {
         response.hits.hits.forEach((obj) => {
