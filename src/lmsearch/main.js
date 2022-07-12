@@ -126,6 +126,10 @@ const Main = function Main(options = {}) {
         }
       });
     },
+    clearInfoMessage() {
+      document.getElementById('o-lmsearch-info').innerHTML = "";
+      document.getElementById('o-lmsearch-info').style.display = "none";
+    },
     onInit() {
       name = options.searchAttribute;
       northing = options.northing || undefined;
@@ -244,6 +248,7 @@ const Main = function Main(options = {}) {
         </span>
         </button>
         </div>
+        <div id="o-lmsearch-info" class="dropdown-content"></div>
         </div>`;
       let elLayerManger = Origo.ui.dom.html(template);
       document.getElementById(viewer.getMain().getId()).appendChild(elLayerManger);
@@ -342,12 +347,12 @@ const Main = function Main(options = {}) {
       function responseHandler(data) {
         let result = data;
         if (result.length === 0) {
-          console.log('Ingen träff');
-          result = [{
-            NAMN: ' ',
-            value: ' ',
-            layer: 'Ingen träff'
-          }];
+          result = [{label: 'Ingen träff', value:''}];
+          document.getElementById('o-lmsearch-info').innerHTML = "Ingen träff";
+          document.getElementById('o-lmsearch-info').style.display = "flex";
+        } else {
+          document.getElementById('o-lmsearch-info').innerHTML = "";
+          document.getElementById('o-lmsearch-info').style.display = "none";
         }
 
         list = [];
@@ -392,11 +397,9 @@ const Main = function Main(options = {}) {
           handler(data);
         }).catch((err) => {
           console.log(err.message);
-          data = [{
-            NAMN: ' ',
-            value: ' ',
-            layer: err.message // workaround to quickly render the message in the drop down list
-          }];
+          data = [{label: 'Error', value:''}];
+          document.getElementById('o-lmsearch-info').innerHTML = err.message;
+          document.getElementById('o-lmsearch-info').style.display = "flex";
           handler(data);
         });
       }
@@ -686,6 +689,10 @@ const Main = function Main(options = {}) {
         }
       }
 
+      // Clear info message if click on map
+      document.getElementById('o-lmsearch-info').innerHTML = "";
+      document.getElementById('o-lmsearch-info').style.display = "none";
+
       let estateInfoClick = false;
       map.forEachFeatureAtPixel(evt.pixel,
         (feature) => {
@@ -788,6 +795,7 @@ const Main = function Main(options = {}) {
       $('#o-lmsearch-button-close').on('click', (e) => {
         this.clearSearchResults();
         this.clear();
+        this.clearInfoMessage();
         $('#o-lmsearch').removeClass('o-search-true');
         $('#o-lmsearch').addClass('o-search-false');
         $('#o-lmsearch .o-search-field').val('');
