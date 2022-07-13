@@ -150,6 +150,7 @@ const Main = function Main(options = {}) {
       maxZoomLevel = options.maxZoomLevel || viewer.getResolutions().length - 2 || viewer.getResolutions();
       this.limit = options.limit || 9;
       this.hintText = options.hintText || 'Sök...';
+      this.searchLabelText = options.searchLabelText || 'Sök:';
       this.minLength = options.minLength || 4;
       projectionCode = viewer.getProjectionCode();
 
@@ -233,16 +234,21 @@ const Main = function Main(options = {}) {
     },
     render() {
       const template = `<div id="o-lmsearch-wrapper" class="o-search-wrapper absolute top-center rounded-larger box-shadow bg-white" style="flex-wrap: wrap; overflow: visible;">
-        <div id="o-lmsearch" class="o-search o-search-false flex row align-center padding-right-small" style="">
-        <input id="hjl" class="o-search-field form-control" type="text" placeholder="${this.hintText}" autocomplete="off" aria-autocomplete="list">
+        <div id="o-lmsearch" class="o-search o-search-false flex row align-center padding-right-small padding-left-small" style="">
+        <span class="padding-left-small" style="display: flex; align-items: center;">
+          <label id="searchLabel" for="lmsearch">${this.searchLabelText}</label>
+        </span>
+        <span class="padding-right-small">
+          <input id="lmsearch" class="o-search-field form-control" type="text" placeholder="${this.hintText}" autocomplete="off" aria-labelledby="searchLabel" aria-autocomplete="list">
+        </span>
         <ul hidden=""></ul>
         <span class="visually-hidden" role="status" aria-live="assertive" aria-relevant="additions"></span>
-        <button id="o-lmsearch-button" class="o-search-button no-shrink no-grow compact icon-small" style="">
+        <button id="o-lmsearch-button" class="o-search-button no-shrink no-grow compact icon-small" style="" aria-label="Sök">
         <span class="icon grey">
         <svg class="o-icon-fa-search" class="grey" style><use xlink:href="#ic_search_24px"></use></svg>
         </span>
         </button>
-        <button id="o-lmsearch-button-close" class="o-search-button-close no-shrink no-grow compact icon-small" style="">
+        <button id="o-lmsearch-button-close" class="o-search-button-close no-shrink no-grow compact icon-small" style="" aria-label="Rensa">
         <span class="icon grey">
         <svg class="o-icon-search-fa-times" class="grey" style><use xlink:href="#ic_close_24px"></use></svg>
         </span>
@@ -752,7 +758,7 @@ const Main = function Main(options = {}) {
       }
     },
     bindUIActions() {
-      document.getElementById('hjl').addEventListener('awesomplete-selectcomplete', this.selectHandler);
+      document.getElementById('lmsearch').addEventListener('awesomplete-selectcomplete', this.selectHandler);
 
       $('#o-lmsearch .o-search-field').on('input', () => {
         if ($('#o-lmsearch .o-search-field').val() && $('#o-lmsearch').hasClass('o-search-false')) {

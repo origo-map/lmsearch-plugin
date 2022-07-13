@@ -97,6 +97,8 @@ The configuration options explained:
 
 - searchAttribute - the attribute in search json that contains the name that should be shown.
 
+- searchLabelText - the label for search input field, defualt is 'Sök'.
+
 - titleAttribute - the attribute in search json that specify the title of the type.
 
 - contentAttribute - the attribute in search json that contains the content for the search.
