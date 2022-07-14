@@ -129,11 +129,11 @@ The configuration options explained:
 
 - labelBackgroundColor - the background color that should be used for the label on the estate in the estate click function, default is '[255, 255, 255, 0.5]'.
 
-- url_fastighet - the url to search for estates.
+- url_fastighet - the url to search for estates. If not set estate lookup will not be include in the searches.
 
-- url_adress - the url to search for addresses.
+- url_adress - the url to search for addresses. If not set address lookup will not be include in the searches.
 
-- url_ort - the url to search for places.
+- url_ort - the url to search for places. If not set placenames lookup will not be include in the searches.
 
 - url_yta - the url to retrieve the geometry for a estate.
 
@@ -162,6 +162,8 @@ The configuration options explained:
 - pageEstateIconText - the text which should be displayed withen estate report icon, default is `<text x="5" y="40" font-size="45" font-family="Arial" fill="black">FI</text>`.
 
 - pageEstateIconSize - an array with the width and height, in pixels, to use for the estate icon rectangle, default is `[50, 50]`.
+
+- searchEnabled - sets if the search input should be turned on, makes it possible only to use the estate lookup without the search function, default is true.
 
 #### Coordinate reference systems
 

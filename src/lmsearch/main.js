@@ -44,7 +44,8 @@ const Main = function Main(options = {}) {
     pageEstateReportHeight = '500px',
     pageEstateReportUrl = '',
     pageEstateIconText = '<text x="5" y="40" font-size="45" font-family="Arial" fill="black">FI</text>',
-    pageEstateIconSize = [50, 50]
+    pageEstateIconSize = [50, 50],
+    searchEnabled = true
   } = options;
   let {
     maxZoomLevel
@@ -115,7 +116,9 @@ const Main = function Main(options = {}) {
         this.addComponents(buttons);
       }
       this.render();
-      this.initAutocomplete();
+      if (searchEnabled) {
+        this.initAutocomplete();
+      }
       this.bindUIActions();
       viewer.on('toggleClickInteraction', (detail) => {
         if (detail.name === 'lmsearch' && detail.active) {
@@ -233,32 +236,34 @@ const Main = function Main(options = {}) {
       vectorSource.clear();
     },
     render() {
-      const template = `<div id="o-lmsearch-wrapper" class="o-search-wrapper absolute top-center rounded-larger box-shadow bg-white" style="flex-wrap: wrap; overflow: visible;">
-        <div id="o-lmsearch" class="o-search o-search-false flex row align-center padding-right-small padding-left-small" style="">
-        <span class="padding-left-small" style="display: flex; align-items: center;">
-          <label id="searchLabel" for="lmsearch">${this.searchLabelText}</label>
-        </span>
-        <span class="padding-right-small">
-          <input id="lmsearch" class="o-search-field form-control" type="text" placeholder="${this.hintText}" autocomplete="off" aria-labelledby="searchLabel" aria-autocomplete="list">
-        </span>
-        <ul hidden=""></ul>
-        <span class="visually-hidden" role="status" aria-live="assertive" aria-relevant="additions"></span>
-        <button id="o-lmsearch-button" class="o-search-button no-shrink no-grow compact icon-small" style="" aria-label="Sök">
-        <span class="icon grey">
-        <svg class="o-icon-fa-search" class="grey" style><use xlink:href="#ic_search_24px"></use></svg>
-        </span>
-        </button>
-        <button id="o-lmsearch-button-close" class="o-search-button-close no-shrink no-grow compact icon-small" style="" aria-label="Rensa">
-        <span class="icon grey">
-        <svg class="o-icon-search-fa-times" class="grey" style><use xlink:href="#ic_close_24px"></use></svg>
-        </span>
-        </button>
-        </div>
-        <div id="o-lmsearch-info" class="dropdown-content"></div>
-        </div>`;
-      let elLayerManger = Origo.ui.dom.html(template);
-      document.getElementById(viewer.getMain().getId()).appendChild(elLayerManger);
-      elLayerManger = Origo.ui.dom.html(template);
+      if (searchEnabled) {
+        const template = `<div id="o-lmsearch-wrapper" class="o-search-wrapper absolute top-center rounded-larger box-shadow bg-white" style="flex-wrap: wrap; overflow: visible;">
+          <div id="o-lmsearch" class="o-search o-search-false flex row align-center padding-right-small padding-left-small" style="">
+          <span class="padding-left-small" style="display: flex; align-items: center;">
+            <label id="searchLabel" for="lmsearch">${this.searchLabelText}</label>
+          </span>
+          <span class="padding-right-small">
+            <input id="lmsearch" class="o-search-field form-control" type="text" placeholder="${this.hintText}" autocomplete="off" aria-labelledby="searchLabel" aria-autocomplete="list">
+          </span>
+          <ul hidden=""></ul>
+          <span class="visually-hidden" role="status" aria-live="assertive" aria-relevant="additions"></span>
+          <button id="o-lmsearch-button" class="o-search-button no-shrink no-grow compact icon-small" style="" aria-label="Sök">
+          <span class="icon grey">
+          <svg class="o-icon-fa-search" class="grey" style><use xlink:href="#ic_search_24px"></use></svg>
+          </span>
+          </button>
+          <button id="o-lmsearch-button-close" class="o-search-button-close no-shrink no-grow compact icon-small" style="" aria-label="Rensa">
+          <span class="icon grey">
+          <svg class="o-icon-search-fa-times" class="grey" style><use xlink:href="#ic_close_24px"></use></svg>
+          </span>
+          </button>
+          </div>
+          <div id="o-lmsearch-info" class="dropdown-content"></div>
+          </div>`;
+        let elLayerManger = Origo.ui.dom.html(template);
+        document.getElementById(viewer.getMain().getId()).appendChild(elLayerManger);
+        elLayerManger = Origo.ui.dom.html(template);
+      }
       if (estateLookup) {
         const htmlString = estateButton.render();
         const el = Origo.ui.dom.html(htmlString);
@@ -696,8 +701,10 @@ const Main = function Main(options = {}) {
       }
 
       // Clear info message if click on map
-      document.getElementById('o-lmsearch-info').innerHTML = "";
-      document.getElementById('o-lmsearch-info').style.display = "none";
+      if (searchEnabled) {
+        document.getElementById('o-lmsearch-info').innerHTML = "";
+        document.getElementById('o-lmsearch-info').style.display = "none";
+      }
 
       let estateInfoClick = false;
       map.forEachFeatureAtPixel(evt.pixel,
@@ -758,27 +765,29 @@ const Main = function Main(options = {}) {
       }
     },
     bindUIActions() {
-      document.getElementById('lmsearch').addEventListener('awesomplete-selectcomplete', this.selectHandler);
+      if (searchEnabled) {
+        document.getElementById('lmsearch').addEventListener('awesomplete-selectcomplete', this.selectHandler);
 
-      $('#o-lmsearch .o-search-field').on('input', () => {
-        if ($('#o-lmsearch .o-search-field').val() && $('#o-lmsearch').hasClass('o-search-false')) {
-          $('#o-lmsearch').removeClass('o-search-false');
-          $('#o-lmsearch').addClass('o-search-true');
-          this.onClearSearch();
-        } else if (!($('#o-lmsearch .o-search-field').val()) && $('#o-lmsearch').hasClass('o-search-true')) {
-          $('#o-lmsearch').removeClass('o-search-true');
-          $('#o-lmsearch').addClass('o-search-false');
-        }
-      });
+        $('#o-lmsearch .o-search-field').on('input', () => {
+          if ($('#o-lmsearch .o-search-field').val() && $('#o-lmsearch').hasClass('o-search-false')) {
+            $('#o-lmsearch').removeClass('o-search-false');
+            $('#o-lmsearch').addClass('o-search-true');
+            this.onClearSearch();
+          } else if (!($('#o-lmsearch .o-search-field').val()) && $('#o-lmsearch').hasClass('o-search-true')) {
+            $('#o-lmsearch').removeClass('o-search-true');
+            $('#o-lmsearch').addClass('o-search-false');
+          }
+        });
 
-      $('.o-search-field').on('blur', () => {
-        $('.o-search-wrapper').removeClass('active');
-        window.dispatchEvent(new Event('resize'));
-      });
-      $('.o-search-field').on('focus', () => {
-        $('.o-search-wrapper').addClass('active');
-        window.dispatchEvent(new Event('resize'));
-      });
+        $('.o-search-field').on('blur', () => {
+          $('.o-search-wrapper').removeClass('active');
+          window.dispatchEvent(new Event('resize'));
+        });
+        $('.o-search-field').on('focus', () => {
+          $('.o-search-wrapper').addClass('active');
+          window.dispatchEvent(new Event('resize'));
+        });
+      }
       map.on('click', this.onMapClick);
     },
     renderList(suggestion, input) {
