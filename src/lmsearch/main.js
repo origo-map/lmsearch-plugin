@@ -249,12 +249,12 @@ const Main = function Main(options = {}) {
           <span class="visually-hidden" role="status" aria-live="assertive" aria-relevant="additions"></span>
           <button id="o-lmsearch-button" class="o-search-button no-shrink no-grow compact icon-small" style="" aria-label="Sök">
           <span class="icon grey">
-          <svg class="o-icon-fa-search" class="grey" style><use xlink:href="#ic_search_24px"></use></svg>
+          <svg class="o-icon-24" class="grey" style><use xlink:href="#ic_search_24px"></use></svg>
           </span>
           </button>
           <button id="o-lmsearch-button-close" class="o-search-button-close no-shrink no-grow compact icon-small" style="" aria-label="Rensa">
           <span class="icon grey">
-          <svg class="o-icon-search-fa-times" class="grey" style><use xlink:href="#ic_close_24px"></use></svg>
+          <svg class="o-icon-24" class="grey" style><use xlink:href="#ic_close_24px"></use></svg>
           </span>
           </button>
           </div>
