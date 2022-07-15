@@ -479,11 +479,44 @@ const Main = function Main(options = {}) {
             name: objTitle
           }));
           if (typeof objectId !== 'undefined' && pageEstateReportUrl !== '') {
+            let pageEstateReport = '';
+            if (features[0].get('typ') === 'Samfällighet') {
+              const samfallighetsattribut = features[0].get('samfallighetsattribut');
+              const beteckning = features[0].get('name');
+              pageEstateReport = "<h1>Samfällighet</h1><p><b>Beteckning:</b> " + beteckning.slice(0, beteckning.indexOf("Enhetesområde")) + "</p>"
+              + (
+                  typeof samfallighetsattribut.totalLandarea !== "undefined" ?
+                  "<p><b>Land area:</b> " + samfallighetsattribut.totalLandarea + "</p>\n" :
+                  ""
+                )
+              + (
+                  typeof samfallighetsattribut.totalVattenarea !== "undefined" ?
+                  "<p><b>Vatten area:</b> " + samfallighetsattribut.totalVattenarea + "</p>\n" :
+                  ""
+                )
+              + (
+                  typeof samfallighetsattribut.totalRegisterarea !== "undefined" ?
+                  "<p><b>Register area:</b> " + samfallighetsattribut.totalRegisterarea + "</p>\n" :
+                  ""
+                )
+              + (
+                  typeof samfallighetsattribut.senasteAndring !== "undefined" ?
+                  "<p><b>Senaste ändring:</b> " + samfallighetsattribut.senasteAndring + "</p>\n" :
+                  ""
+                )
+              + (
+                  typeof samfallighetsattribut.samfallighetsandamal !== "undefined" ?
+                  "<p><b>Samfällighetsändamål:</b> " + samfallighetsattribut.samfallighetsandamal.join(',') + "</p>\n" :
+                  ""
+                );
+            } else {
+              pageEstateReport = `<iframe src="${pageEstateReportUrl}${objectId}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`;
+            }
             const iconFeature = new Origo.ol.Feature({
               geometry: new Origo.ol.geom.Point(viewer.getMapUtils().getCenter(features[0].getGeometry())),
               name: 'Fastighetsinformation',
               objektidentitet: objectId,
-              pageEstateReport: `<iframe src="${pageEstateReportUrl}${objectId}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`
+              pageEstateReport
             });
             iconFeature.setStyle(iconStyle);
             vectorSource.addFeature(iconFeature);
@@ -678,11 +711,44 @@ const Main = function Main(options = {}) {
           clickFeature.setStyle(clickStyle);
           vectorSource.addFeature(clickFeature);
           if (typeof features[0].getProperties().objektidentitet !== 'undefined' && pageEstateReportUrl !== '') {
+            let pageEstateReport = '';
+            if (features[0].get('typ') === 'Samfällighet') {
+              const samfallighetsattribut = features[0].get('samfallighetsattribut');
+              const beteckning = features[0].get('name');
+              pageEstateReport = "<h1>Samfällighet</h1><p><b>Beteckning:</b> " + beteckning.slice(0, beteckning.indexOf("Enhetesområde")) + "</p>"
+              + (
+                  typeof samfallighetsattribut.totalLandarea !== "undefined" ?
+                  "<p><b>Land area:</b> " + samfallighetsattribut.totalLandarea + "</p>\n" :
+                  ""
+                )
+              + (
+                  typeof samfallighetsattribut.totalVattenarea !== "undefined" ?
+                  "<p><b>Vatten area:</b> " + samfallighetsattribut.totalVattenarea + "</p>\n" :
+                  ""
+                )
+              + (
+                  typeof samfallighetsattribut.totalRegisterarea !== "undefined" ?
+                  "<p><b>Register area:</b> " + samfallighetsattribut.totalRegisterarea + "</p>\n" :
+                  ""
+                )
+              + (
+                  typeof samfallighetsattribut.senasteAndring !== "undefined" ?
+                  "<p><b>Senaste ändring:</b> " + samfallighetsattribut.senasteAndring + "</p>\n" :
+                  ""
+                )
+              + (
+                  typeof samfallighetsattribut.samfallighetsandamal !== "undefined" ?
+                  "<p><b>Samfällighetsändamål:</b> " + samfallighetsattribut.samfallighetsandamal.join(',') + "</p>\n" :
+                  ""
+                );
+            } else {
+              pageEstateReport = `<iframe src="${pageEstateReportUrl}${features[0].getProperties().objektidentitet}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`;
+            }
             const iconFeature = new Origo.ol.Feature({
               geometry: new Origo.ol.geom.Point(coordinate),
               name: 'Fastighetsinformation',
               objektidentitet: features[0].getProperties().objektidentitet,
-              pageEstateReport: `<iframe src="${pageEstateReportUrl}${features[0].getProperties().objektidentitet}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`
+              pageEstateReport
             });
             iconFeature.setStyle(iconStyle);
             vectorSource.addFeature(iconFeature);
