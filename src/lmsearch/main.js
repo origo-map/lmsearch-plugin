@@ -213,8 +213,10 @@ const Main = function Main(options = {}) {
     onRender() {
     },
     clearSearchResults() {
-      awesomplete.list = [];
-      this.setSearchDb([]);
+      if (searchEnabled) {
+        awesomplete.list = [];
+        this.setSearchDb([]);
+      }
       this.clearFeatures();
     },
     setSearchDb(data) {
