@@ -33,7 +33,8 @@ const Lmsearch = function Lmsearch(options = {}) {
     pageEstateReportUrl,
     pageEstateIconText,
     pageEstateIconSize,
-    searchEnabled
+    searchEnabled,
+    hideWhenEmbedded
   } = options;
 
   let viewer;
@@ -76,7 +77,8 @@ const Lmsearch = function Lmsearch(options = {}) {
         pageEstateReportUrl,
         pageEstateIconText,
         pageEstateIconSize,
-        searchEnabled
+        searchEnabled,
+        hideWhenEmbedded
       });
       this.addComponent(search);
       this.render();
