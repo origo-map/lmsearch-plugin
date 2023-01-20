@@ -45,10 +45,11 @@ const Main = function Main(options = {}) {
     pageEstateReportUrl = '',
     pageEstateIconText = '<text x="5" y="40" font-size="45" font-family="Arial" fill="black">FI</text>',
     pageEstateIconSize = [50, 50],
-    searchEnabled = true
+    hideWhenEmbedded = false
   } = options;
   let {
-    maxZoomLevel
+    maxZoomLevel,
+    searchEnabled = true
   } = options;
   let urlYta;
   let urlYtaKord;
@@ -96,6 +97,10 @@ const Main = function Main(options = {}) {
       scale: 1
     })
   });
+  const isEmbedded = viewer.getEmbedded();
+  if (isEmbedded && hideWhenEmbedded) {
+    searchEnabled = false;
+  }
 
   const setEstateActive = function setEstateActive(state) {
     if (state) {
@@ -112,7 +117,7 @@ const Main = function Main(options = {}) {
   return Origo.ui.Component({
     onAdd() {
       // viewer = evt.target;
-      if (estateLookup) {
+      if (estateLookup && !(isEmbedded && hideWhenEmbedded)) {
         this.addComponents(buttons);
       }
       this.render();
@@ -177,7 +182,7 @@ const Main = function Main(options = {}) {
       vectorLayer.set('group', 'none');
       map.addLayer(vectorLayer);
 
-      if (estateLookup) {
+      if (estateLookup && !(isEmbedded && hideWhenEmbedded)) {
         estateButton = Origo.ui.Button({
           cls: 'o-estate padding-small margin-bottom-smaller icon-smaller round light box-shadow',
           click() {
@@ -266,7 +271,7 @@ const Main = function Main(options = {}) {
         document.getElementById(viewer.getMain().getId()).appendChild(elLayerManger);
         elLayerManger = Origo.ui.dom.html(template);
       }
-      if (estateLookup) {
+      if (estateLookup && !(isEmbedded && hideWhenEmbedded)) {
         const htmlString = estateButton.render();
         const el = Origo.ui.dom.html(htmlString);
         document.getElementById(target).appendChild(el);

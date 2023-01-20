@@ -165,6 +165,8 @@ The configuration options explained:
 
 - searchEnabled - sets if the search input should be turned on, makes it possible only to use the estate lookup without the search function, default is true.
 
+- hideWhenEmbedded - sets if the search input and estate lookup button should be hidden when map is embedded, default is false.
+
 #### Coordinate reference systems
 
 The default coordinate reference system is SWEREF99 TM (EPSG:3006).
