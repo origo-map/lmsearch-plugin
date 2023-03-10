@@ -135,8 +135,8 @@ const Main = function Main(options = {}) {
       });
     },
     clearInfoMessage() {
-      document.getElementById('o-lmsearch-info').innerHTML = "";
-      document.getElementById('o-lmsearch-info').style.display = "none";
+      document.getElementById('o-lmsearch-info').innerHTML = '';
+      document.getElementById('o-lmsearch-info').style.display = 'none';
     },
     onInit() {
       name = options.searchAttribute;
@@ -365,12 +365,12 @@ const Main = function Main(options = {}) {
       function responseHandler(data) {
         let result = data;
         if (result.length === 0) {
-          result = [{label: 'Ingen träff', value:''}];
-          document.getElementById('o-lmsearch-info').innerHTML = "Ingen träff";
-          document.getElementById('o-lmsearch-info').style.display = "flex";
+          result = [{label: 'Ingen träff', value: ''}];
+          document.getElementById('o-lmsearch-info').innerHTML = 'Ingen träff';
+          document.getElementById('o-lmsearch-info').style.display = 'flex';
         } else {
-          document.getElementById('o-lmsearch-info').innerHTML = "";
-          document.getElementById('o-lmsearch-info').style.display = "none";
+          document.getElementById('o-lmsearch-info').innerHTML = '';
+          document.getElementById('o-lmsearch-info').style.display = 'none';
         }
 
         list = [];
@@ -415,9 +415,9 @@ const Main = function Main(options = {}) {
           handler(data);
         }).catch((err) => {
           console.log(err.message);
-          data = [{label: 'Error', value:''}];
+          data = [{label: 'Error', value: ''}];
           document.getElementById('o-lmsearch-info').innerHTML = err.message;
-          document.getElementById('o-lmsearch-info').style.display = "flex";
+          document.getElementById('o-lmsearch-info').style.display = 'flex';
           handler(data);
         });
       }
@@ -487,35 +487,16 @@ const Main = function Main(options = {}) {
           }));
           if (typeof objectId !== 'undefined' && pageEstateReportUrl !== '') {
             let pageEstateReport = '';
-            if (features[0].get('typ') === 'Samfällighet') {
+            if (features[0].get('typ').toLowerCase() === 'samfällighet') {
               const samfallighetsattribut = features[0].get('samfallighetsattribut');
               const beteckning = features[0].get('name');
-              pageEstateReport = "<h1>Samfällighet</h1><p><b>Beteckning:</b> " + beteckning.slice(0, beteckning.indexOf("Enhetesområde")) + "</p>"
-              + (
-                  typeof samfallighetsattribut.totalLandarea !== "undefined" ?
-                  "<p><b>Land area:</b> " + samfallighetsattribut.totalLandarea + "</p>\n" :
-                  ""
-                )
-              + (
-                  typeof samfallighetsattribut.totalVattenarea !== "undefined" ?
-                  "<p><b>Vatten area:</b> " + samfallighetsattribut.totalVattenarea + "</p>\n" :
-                  ""
-                )
-              + (
-                  typeof samfallighetsattribut.totalRegisterarea !== "undefined" ?
-                  "<p><b>Register area:</b> " + samfallighetsattribut.totalRegisterarea + "</p>\n" :
-                  ""
-                )
-              + (
-                  typeof samfallighetsattribut.senasteAndring !== "undefined" ?
-                  "<p><b>Senaste ändring:</b> " + samfallighetsattribut.senasteAndring + "</p>\n" :
-                  ""
-                )
-              + (
-                  typeof samfallighetsattribut.samfallighetsandamal !== "undefined" ?
-                  "<p><b>Samfällighetsändamål:</b> " + samfallighetsattribut.samfallighetsandamal.join(',') + "</p>\n" :
-                  ""
-                );
+              pageEstateReport = `<h1>Samfällighet</h1><p><b>Beteckning:</b> ${beteckning.slice(0, beteckning.indexOf('Enhetesområde'))}</p>
+              ${typeof samfallighetsattribut.totalLandarea !== 'undefined' ? `<p><b>Land area:</b> ${samfallighetsattribut.totalLandarea}</p>\n` : ''}
+              ${typeof samfallighetsattribut.totalVattenarea !== 'undefined' ? `<p><b>Vatten area:</b> ${samfallighetsattribut.totalVattenarea}</p>\n` : ''}
+              ${typeof samfallighetsattribut.totalareal !== 'undefined' ? `<p><b>Register area:</b> ${samfallighetsattribut.totalareal}</p>\n` : ''}
+              ${typeof samfallighetsattribut.senasteAndringAllmannaDelen !== 'undefined' ? `<p><b>Senaste ändring:</b> ${samfallighetsattribut.senasteAndringAllmannaDelen}</p>\n` : ''}
+              ${typeof samfallighetsattribut.status !== 'undefined' ? `<p><b>Status:</b> ${samfallighetsattribut.status}</p>\n` : ''}
+              ${typeof samfallighetsattribut.samfallighetsandamal !== 'undefined' ? `<p><b>Samfällighetsändamål:</b> ${samfallighetsattribut.samfallighetsandamal}</p>\n` : ''}`;
             } else {
               pageEstateReport = `<iframe src="${pageEstateReportUrl}${objectId}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`;
             }
@@ -719,35 +700,16 @@ const Main = function Main(options = {}) {
           vectorSource.addFeature(clickFeature);
           if (typeof features[0].getProperties().objektidentitet !== 'undefined' && pageEstateReportUrl !== '') {
             let pageEstateReport = '';
-            if (features[0].get('typ') === 'Samfällighet') {
+            if (features[0].get('typ').toLowerCase() === 'samfällighet') {
               const samfallighetsattribut = features[0].get('samfallighetsattribut');
               const beteckning = features[0].get('name');
-              pageEstateReport = "<h1>Samfällighet</h1><p><b>Beteckning:</b> " + beteckning.slice(0, beteckning.indexOf("Enhetesområde")) + "</p>"
-              + (
-                  typeof samfallighetsattribut.totalLandarea !== "undefined" ?
-                  "<p><b>Land area:</b> " + samfallighetsattribut.totalLandarea + "</p>\n" :
-                  ""
-                )
-              + (
-                  typeof samfallighetsattribut.totalVattenarea !== "undefined" ?
-                  "<p><b>Vatten area:</b> " + samfallighetsattribut.totalVattenarea + "</p>\n" :
-                  ""
-                )
-              + (
-                  typeof samfallighetsattribut.totalRegisterarea !== "undefined" ?
-                  "<p><b>Register area:</b> " + samfallighetsattribut.totalRegisterarea + "</p>\n" :
-                  ""
-                )
-              + (
-                  typeof samfallighetsattribut.senasteAndring !== "undefined" ?
-                  "<p><b>Senaste ändring:</b> " + samfallighetsattribut.senasteAndring + "</p>\n" :
-                  ""
-                )
-              + (
-                  typeof samfallighetsattribut.samfallighetsandamal !== "undefined" ?
-                  "<p><b>Samfällighetsändamål:</b> " + samfallighetsattribut.samfallighetsandamal.join(',') + "</p>\n" :
-                  ""
-                );
+              pageEstateReport = `<h1>Samfällighet</h1><p><b>Beteckning:</b> ${beteckning.slice(0, beteckning.indexOf('Enhetesområde'))}</p>
+              ${typeof samfallighetsattribut.totalLandarea !== 'undefined' ? `<p><b>Land area:</b> ${samfallighetsattribut.totalLandarea}</p>\n` : ''}
+              ${typeof samfallighetsattribut.totalVattenarea !== 'undefined' ? `<p><b>Vatten area:</b> ${samfallighetsattribut.totalVattenarea}</p>\n` : ''}
+              ${typeof samfallighetsattribut.totalareal !== 'undefined' ? `<p><b>Register area:</b> ${samfallighetsattribut.totalareal}</p>\n` : ''}
+              ${typeof samfallighetsattribut.senasteAndringAllmannaDelen !== 'undefined' ? `<p><b>Senaste ändring:</b> ${samfallighetsattribut.senasteAndringAllmannaDelen}</p>\n` : ''}
+              ${typeof samfallighetsattribut.status !== 'undefined' ? `<p><b>Status:</b> ${samfallighetsattribut.status}</p>\n` : ''}
+              ${typeof samfallighetsattribut.samfallighetsandamal !== 'undefined' ? `<p><b>Samfällighetsändamål:</b> ${samfallighetsattribut.samfallighetsandamal}</p>\n` : ''}`;
             } else {
               pageEstateReport = `<iframe src="${pageEstateReportUrl}${features[0].getProperties().objektidentitet}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`;
             }
@@ -775,12 +737,13 @@ const Main = function Main(options = {}) {
 
       // Clear info message if click on map
       if (searchEnabled) {
-        document.getElementById('o-lmsearch-info').innerHTML = "";
-        document.getElementById('o-lmsearch-info').style.display = "none";
+        document.getElementById('o-lmsearch-info').innerHTML = '';
+        document.getElementById('o-lmsearch-info').style.display = 'none';
       }
 
       let estateInfoClick = false;
-      map.forEachFeatureAtPixel(evt.pixel,
+      map.forEachFeatureAtPixel(
+        evt.pixel,
         (feature) => {
           if (typeof feature.getProperties().pageEstateReport !== 'undefined' && pageEstateReportUrl !== '') {
             Origo.ui.Modal({
