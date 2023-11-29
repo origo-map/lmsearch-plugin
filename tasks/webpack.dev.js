@@ -1,5 +1,5 @@
 const { merge } = require('webpack-merge');
-const common = require('./webpack.common.js');
+const common = require('./webpack.common');
 
 module.exports = merge(common, {
   output: {
@@ -14,14 +14,14 @@ module.exports = merge(common, {
   module: {
     rules: [{
       test: /\.scss$/,
-      use: ['style-loader','css-loader','sass-loader']
+      use: ['style-loader', 'css-loader', 'sass-loader']
     }]
   },
   devServer: {
     devMiddleware: {
       publicPath: '/build/js',
       serverSideRender: true,
-      writeToDisk: true,
+      writeToDisk: true
     },
     static: './',
     port: 9008,
@@ -29,7 +29,7 @@ module.exports = merge(common, {
     allowedHosts: 'auto',
     headers: {
       'Access-Control-Allow-Origin': 'http://localhost:9966',
-      'Access-Control-Allow-Credentials': 'true',
-    },
+      'Access-Control-Allow-Credentials': 'true'
+    }
   }
 });
