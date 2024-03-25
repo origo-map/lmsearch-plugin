@@ -37,11 +37,9 @@ module.exports = {
   },
   externals: ['Origo'],
   resolve: {
-    extensions: ['*', '.js', '.scss']
-  },
-  plugins: [
-    new webpack.ProvidePlugin({
-      fetch: 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch'
-    })
-  ]
+    extensions: ['*', '.js', '.scss'],
+    fallback: {
+      path: require.resolve('path-browserify')
+    }
+  }
 };

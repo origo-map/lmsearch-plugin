@@ -19,6 +19,7 @@
     "jquery": "^3.6.0",
     "lodash": "^4.17.21",
     "owl.carousel": "^2.3.4",
+    "path-browserify": "^1.0.1",
     "terser-webpack-plugin": "^5.3.3",
     "whatwg-fetch": "^3.6.2"
   },

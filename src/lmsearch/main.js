@@ -365,7 +365,7 @@ const Main = function Main(options = {}) {
       function responseHandler(data) {
         let result = data;
         if (result.length === 0) {
-          result = [{label: 'Ingen träff', value: ''}];
+          result = [{ label: 'Ingen träff', value: '' }];
           document.getElementById('o-lmsearch-info').innerHTML = 'Ingen träff';
           document.getElementById('o-lmsearch-info').style.display = 'flex';
         } else {
@@ -415,7 +415,7 @@ const Main = function Main(options = {}) {
           handler(data);
         }).catch((err) => {
           console.log(err.message);
-          data = [{label: 'Error', value: ''}];
+          data = [{ label: 'Error', value: '' }];
           document.getElementById('o-lmsearch-info').innerHTML = err.message;
           document.getElementById('o-lmsearch-info').style.display = 'flex';
           handler(data);
@@ -574,7 +574,7 @@ const Main = function Main(options = {}) {
             if (features.length > 1) {
               console.log('Found FeatureCollection with multiple features. Trying to merge them into a Multigeometry');
               if (features[0].getGeometry().getType() === 'Polygon') {
-                const multiGeom = new Origo.ol.geom.MultiPolygon(features[0].getGeometry());
+                const multiGeom = new Origo.ol.geom.MultiPolygon([]);
                 features.forEach((feat) => {
                   // Make sure that geometry is polygon in the case that it might be a point
                   if (feat.getGeometry().getType() === 'Polygon') {
@@ -591,7 +591,7 @@ const Main = function Main(options = {}) {
             // content = prepSuggestions.createElement('div', data[contentAttribute]);
             showFeatureInfo(features, data[titleAttribute], content, objectId);
           }).catch((err) => {
-            console.error(err.statusText);
+            console.error(err);
           });
         } else {
           feature = viewer.getMapUtils().wktToFeature(data[geometryAttribute], projectionCode);
@@ -754,7 +754,8 @@ const Main = function Main(options = {}) {
             });
             estateInfoClick = true;
           }
-        });
+        }
+      );
       if (estateLookupOn && !estateInfoClick) {
         const coordinate = evt.coordinate;
         const areaPromise = fetchFastighetsYta(coordinate);
