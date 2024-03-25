@@ -35,6 +35,9 @@ module.exports = {
   },
   externals: ['Origo'],
   resolve: {
-    extensions: ['*', '.js', '.scss']
+    extensions: ['*', '.js', '.scss'],
+    fallback: {
+      path: require.resolve('path-browserify')
+    }
   }
 };

@@ -24,7 +24,7 @@ module.exports = merge(common, {
       writeToDisk: true
     },
     static: './',
-    port: 9008,
+    port: 9002,
     liveReload: true,
     allowedHosts: 'auto',
     headers: {
