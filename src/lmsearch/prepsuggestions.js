@@ -341,7 +341,12 @@ const makeRequest = function makeRequest(prepOptions, q, viewer) {
   let urlAdress = '';
   if (prepOptions.urlAdress) {
     urlAdress = prepOptions.urlAdress;
-    urlAdress += `&q=${municipalities} ${encodeURI(q)}`;
+    let statusAddress = '';
+    if (typeof prepOptions.statusAddress !== 'undefined') {
+      statusAddress = `&statusAddress=${encodeURI(prepOptions.statusAddress)}`;
+    }
+    const codes = prepCommuneCodes(prepOptions.municipalities);
+    urlAdress += `&municipalityCodes=${codes}&q=${encodeURI(q)}${statusAddress}`;
   }
 
   let urlOrt = '';

@@ -170,9 +170,9 @@ const Main = function Main(options = {}) {
       prepOptions.urlOrt = options.urlOrt;
       prepOptions.elasticSearch = options.elasticSearch || undefined;
       prepOptions.municipalities = options.municipalities;
+      prepOptions.statusAddress = options.statusAddress ? options.statusAddress:undefined;
       urlYta = options.urlYta;
       urlYtaKord = options.urlYtaKordinat;
-
       vectorSource = new Origo.ol.source.Vector();
       vectorLayer = new Origo.ol.layer.Vector({
         source: vectorSource,

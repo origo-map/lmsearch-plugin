@@ -7,6 +7,7 @@ Requires Origo 2.1.1 or later and a Origoserver
 #### Example usage of LMsearch plugin
 
 **index.html:**
+
 ```
     <head>
     	<meta charset="utf-8">
@@ -40,6 +41,8 @@ Requires Origo 2.1.1 or later and a Origoserver
           "limit": 10,
           "maxZoomLevel": 10,
           "municipalities": "Sundsvall,Hudiksvall",
+          "municipalityCodes": "2281,2184",
+          "statusAddress": "Gällande",
           "showFeature": "geometryOnly",
           "featureStyles": {
             "stroke": {
@@ -89,6 +92,7 @@ Requires Origo 2.1.1 or later and a Origoserver
 ```
 
 #### Configuration options
+
 The configuration options explained:
 
 - geometryAttribute - the attribute in search json that holds the geometry.
@@ -119,6 +123,8 @@ The configuration options explained:
 
 - municipalities - sets in which municipalities the search should be limited to. The value is a string delimited with comma sign.
 
+- statusAddress - specifies which status the address to be searched for should have. The options are 'Gällande' or 'Reserverad', defualt is 'Gällande'.
+
 - showFeature - specifies how matches should be shown. The options are 'geometryOnly' or 'popup', defualt is 'geometryOnly'.
 
 - featureStyles - a object for the style when 'geometryOnly' is selected.
@@ -141,17 +147,17 @@ The configuration options explained:
 
 - elasticSearch - a object for the configuration of searching a ElasticSearch index.
 
-		url - the url to the ElasticSearch index endpoint.
+      url - the url to the ElasticSearch index endpoint.
 
-		name - the name of the search, it's used as header in the search result.
+      name - the name of the search, it's used as header in the search result.
 
-		text - the property which is to be used as text shown in the search result.
+      text - the property which is to be used as text shown in the search result.
 
-		searchIn - a array of the property which should be searched in to find a match.
+      searchIn - a array of the property which should be searched in to find a match.
 
-		id - the property which is to be used as a id to be able to exclude duplicates in the search result.
+      id - the property which is to be used as a id to be able to exclude duplicates in the search result.
 
-		geometry - the property which holds the geometry.
+      geometry - the property which holds the geometry.
 
 - pageEstateReportWidth - the width of the page for the estate report, default is '700px'
 
@@ -182,20 +188,20 @@ If your map uses a different coordinate reference systems you must specify which
 
 Valid coordinate reference systems are
 
- * SWEREF99 TM **EPSG:3006**
- * SWEREF99 12 00 **EPSG:3007**
- * SWEREF99 13 30 **EPSG:3008**
- * SWEREF99 15 00 **EPSG:3009**
- * SWEREF99 16 30 **EPSG:3010**
- * SWEREF99 18 00 **EPSG:3011**
- * SWEREF99 14 15 **EPSG:3012**
- * SWEREF99 15 45 **EPSG:3013**
- * SWEREF99 17 15 **EPSG:3014**
- * SWEREF99 18 45 **EPSG:3015**
- * SWEREF99 20 15 **EPSG:3016**
- * SWEREF99 21 45 **EPSG:3017**
- * SWEREF99 23 15 **EPSG:3018**
- * WGS 84 / Pseudo-Mercator -- Spherical Mercator **EPSG:3857**
- * WGS84 - World Geodetic System 1984, used in GPS **EPSG:4326**
+- SWEREF99 TM **EPSG:3006**
+- SWEREF99 12 00 **EPSG:3007**
+- SWEREF99 13 30 **EPSG:3008**
+- SWEREF99 15 00 **EPSG:3009**
+- SWEREF99 16 30 **EPSG:3010**
+- SWEREF99 18 00 **EPSG:3011**
+- SWEREF99 14 15 **EPSG:3012**
+- SWEREF99 15 45 **EPSG:3013**
+- SWEREF99 17 15 **EPSG:3014**
+- SWEREF99 18 45 **EPSG:3015**
+- SWEREF99 20 15 **EPSG:3016**
+- SWEREF99 21 45 **EPSG:3017**
+- SWEREF99 23 15 **EPSG:3018**
+- WGS 84 / Pseudo-Mercator -- Spherical Mercator **EPSG:3857**
+- WGS84 - World Geodetic System 1984, used in GPS **EPSG:4326**
 
- If others are need please update Origoserver.
+If others are need please update Origoserver.
