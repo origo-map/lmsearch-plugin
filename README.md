@@ -41,7 +41,6 @@ Requires Origo 2.1.1 or later and a Origoserver
           "limit": 10,
           "maxZoomLevel": 10,
           "municipalities": "Sundsvall,Hudiksvall",
-          "municipalityCodes": "2281,2184",
           "statusAddress": "Gällande",
           "showFeature": "geometryOnly",
           "featureStyles": {
