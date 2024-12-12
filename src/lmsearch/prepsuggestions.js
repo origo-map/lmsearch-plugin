@@ -255,7 +255,10 @@ const extractAddresses = async function extractAddresses(urlAdress, q, limit) {
       // An array that will be populated with substring matches
       const preliminaryMatches = [];
       let i = 0;
-      // Iterate through the pool of strings and group by street name for better distribution of results
+      /* Iterate through the pool of strings and group by street name for better distribution of results.
+       * In other words all addresses coming from the same street name will be placed in a single group. this gives us a
+       * better possibility of evenly spreading the results.
+       */
       const searchResultsBasedOnStreetName = {};
       data.forEach((arrObj) => {
         const str = arrObj[1].split(' ');
