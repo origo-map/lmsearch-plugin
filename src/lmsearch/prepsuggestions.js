@@ -1,9 +1,3 @@
-// this module is slightly different from prepare suggestions and is used for awsomeplete
-
-// this module request data from https://karta.e-tjansteportalen.se and returns an array
-// of suggestions to be shown for the search field
-
-import $ from 'jquery';
 import communeCodes from './communecodes';
 
 const _ = require('lodash');
@@ -17,7 +11,15 @@ const _ = require('lodash');
  }
  */
 
+/**
+ * Prepares a URI-encoded string of municipalities from a comma-separated input string.
+ * @function
+ * @name prepMunicipalities
+ * @param {string} municipalities - Comma-separated list of municipality names.
+ * @returns {string} URI-encoded list of municipalities.
+ */
 function prepMunicipalities(municipalities) {
+  // Split the municipalities string into an array and trim whitespace from each element
   const results = [];
   let municipalitiesTokenized = [];
   if (municipalities) {
@@ -26,10 +28,19 @@ function prepMunicipalities(municipalities) {
   for (let i = 0; i < municipalitiesTokenized.length; i += 1) {
     results.push(municipalitiesTokenized[i].trim());
   }
+  // Encode the array as a URI component
   return encodeURI(results.join(','));
 }
 
+/**
+ * Converts municipality names to commune codes.
+ * @function
+ * @name prepCommuneCodes
+ * @param {string} municipalities - Comma-separated list of municipality names.
+ * @returns {string} Comma-separated list of commune codes.
+ */
 function prepCommuneCodes(municipalities) {
+  // Convert municipalities into commune codes using communeCodes.getCommuneCode
   const results = [];
   let municipalitiesTokenized = [];
   if (municipalities) {
@@ -41,13 +52,23 @@ function prepCommuneCodes(municipalities) {
   return results.join(',');
 }
 
+/**
+ * Compares two address objects by their street names, ignoring house numbers.
+ * @function
+ * @name compareAddress
+ * @param {Object} a - First address object.
+ * @param {Object} b - Second address object.
+ * @returns {number} -1 if a < b, 1 if a > b, 0 if equal.
+ */
 function compareAddress(a, b) {
+  // Compare two addresses by their street names, ignoring the first and last components (e.g., house numbers)
   const addressString1 = a.NAMN;
   const addressString2 = b.NAMN;
 
   const str1 = addressString1.split(' ');
   const str2 = addressString2.split(' ');
 
+  // Remove the first and last components, assuming they are house numbers
   str1.pop();
   str2.pop();
 
@@ -57,6 +78,7 @@ function compareAddress(a, b) {
   const streetName1 = str1.join(' ');
   const streetName2 = str2.join(' ');
 
+  // Compare the street names
   if (streetName1 < streetName2) {
     return -1;
   }
@@ -66,7 +88,16 @@ function compareAddress(a, b) {
   return 0;
 }
 
+/**
+ * Compares two property objects by their names.
+ * @function
+ * @name compareFastighet
+ * @param {Object} a - First property object.
+ * @param {Object} b - Second property object.
+ * @returns {number} -1 if a < b, 1 if a > b, 0 if equal.
+ */
 function compareFastighet(a, b) {
+  // Simple comparison based on the property name (NAMN)
   if (a.NAMN < b.NAMN) {
     return -1;
   }
@@ -76,7 +107,15 @@ function compareFastighet(a, b) {
   return 0;
 }
 
+/**
+ * Removes erroneous components from an object based on a query string.
+ * @function
+ * @name removeErroniousComponents
+ * @param {Object} object - The object to clean.
+ * @param {string} q - The query string used for filtering properties.
+ */
 function removeErroniousComponents(object, q) {
+  // Remove properties from the object if they don't match the first word in the query
   const q2 = q.split(' ');
   const substrRegex = new RegExp(q2[0], 'i');
   for (const property in object) {
@@ -86,6 +125,14 @@ function removeErroniousComponents(object, q) {
   }
 }
 
+/**
+ * Retrieves a nested attribute from an entity object using dot notation.
+ * @function
+ * @name getAttribute
+ * @param {Object} entity - The object from which to retrieve the attribute.
+ * @param {string} key - The key representing the nested attribute (e.g., 'property.subproperty').
+ * @returns {*} The value of the nested attribute, or an empty string if not found.
+ */
 function getAttribute(entity, key) {
   let retVal = '';
   let keys = '';
@@ -104,64 +151,116 @@ function getAttribute(entity, key) {
   return retVal;
 }
 
-// Fastigheter
-// OBS: response from lm is a list of features here
-const extractNames = function extractNames(urlFastighet) {
-  if (urlFastighet) {
-    const dataPromise = $.ajax({
-      url: urlFastighet,
-      dataType: 'json'
-    });
+/**
+ * Removes basic authentication from a URL and stores the username and password in variables.
+ *
+ * @param {string} url - The URL containing basic authentication.
+ * @returns {Object} An object containing the modified URL, username, and password.
+ */
+function removeBasicAuth(url) {
+  // Use a regular expression to match the username and password in the URL
+  const authRegex = /^(https?:\/\/)([^:]+):([^@]+)@(.+)$/;
+  const match = url.match(authRegex);
 
-    return dataPromise.then((response) => {
-      // an array that will be populated with substring matches
-      // iterate and add the whole object to the 'matches' array plus a dataType identifier
+  if (match) {
+    // Extract the protocol, username, password, and the rest of the URL
+    const protocol = match[1];
+    const username = match[2];
+    const password = match[3];
+    const restOfUrl = match[4];
 
-      let matches = [];
-      // sometimes server returns an empty object instead of a list. for example if we search "fisk"
-      // OBS!  response.constructor.name does not work in IE
-      if (response !== null && Object.prototype.toString.call(response) === '[object Array]') {
-        matches = response.map(obj => ({
-          NAMN: obj.properties.name,
-          id: obj.properties.objid,
-          TYPE: 'hallstakartan.tk_s_ads_p',
-          layer: 'Fastighet',
-          // this line has no effect bcuz the geometry will be requested later and this won't be used at all
-          st_astext: 'POINT(134690.511 6610941.918)',
-          geom_format: 'WKT'
-        }));
-        matches.sort(compareFastighet);
-      }
-      return matches;
-    }).fail(() => {
-      console.log('Något gick fel, kunde inte hämta Fastigheter.');
-    });
+    // Construct the URL without the authentication part
+    const modifiedUrl = protocol + restOfUrl;
+
+    // Return an object containing the modified URL, username, and password
+    return {
+      url: modifiedUrl,
+      username: username,
+      password: password
+    };
+  } else {
+    // Return the original URL if no authentication was found
+    return {
+      url: url,
+      username: null,
+      password: null
+    };
   }
-  return [];
+}
+
+/**
+ * Extracts property names from a given URL for properties (fastigheter).
+ * @function
+ * @name extractNames
+ * @param {string} urlFastighet - The URL to fetch property data from.
+ * @returns {Promise<Array>} A promise that resolves to an array of property names.
+ */
+const extractNames = async function extractNames(urlFastighet) {
+  if (!urlFastighet) return [];
+
+  try {
+    const response = await fetch(urlFastighet);
+    if (!response.ok) {
+      console.log('Något gick fel, kunde inte hämta Fastigheter.');
+      return [];
+    }
+
+    const data = await response.json();
+
+    if (Array.isArray(data)) {
+      // Map the data into a list of matches
+      const matches = data.map((obj) => ({
+        NAMN: obj.properties.name,
+        id: obj.properties.objid,
+        TYPE: 'hallstakartan.tk_s_ads_p',
+        layer: 'Fastighet',
+      }));
+
+      // Assuming compareFastighet is defined elsewhere to sort the matches
+      // matches.sort(compareFastighet);
+      return matches;
+    } else {
+      console.warn('Svar är inte en array.');
+      return [];
+    }
+  } catch (error) {
+    console.log('Något gick fel:', error);
+    return [];
+  }
 };
 
-// Adresser
-// OBS: response from lm is a list here:
-const extractAddresses = function extractAddresses(urlAdress, q, limit) {
+/**
+ * Extracts addresses from a given URL.
+ * @function
+ * @name extractAddresses
+ * @param {string} urlAdress - The URL to fetch address data from.
+ * @param {string} q - The search query string.
+ * @param {number} limit - The maximum number of results to return.
+ * @returns {Promise<Array>} A promise that resolves to an array of addresses.
+ */
+const extractAddresses = async function extractAddresses(urlAdress, q, limit) {
   if (urlAdress) {
-    const dataPromise = $.ajax({
-      url: urlAdress,
-      dataType: 'json'
-    });
-
-    return dataPromise.then((response) => {
-      if (response === null || Object.prototype.toString.call(response) !== '[object Array]') {
+    try {
+      const response = await fetch(urlAdress);
+      if (!response.ok) {
+        console.log('Något gick fel, kunde inte hämta Adresser.');
         return [];
       }
 
-      // an array that will be populated with substring matches
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        return [];
+      }
+
+      // An array that will be populated with substring matches
       const preliminaryMatches = [];
       let i = 0;
-      // iterate through the pool of strings and populate the object below by different groups based on the street names!
-      // in other words all addresses coming from the same street name will be placed in a single group. this gives us a
-      // better possibility of evenly spreading the results.
+      /* Iterate through the pool of strings and group by street name for better distribution of results.
+       * In other words all addresses coming from the same street name will be placed in a single group. this gives us a
+       * better possibility of evenly spreading the results.
+       */
       const searchResultsBasedOnStreetName = {};
-      $.each(response, (k, arrObj) => {
+      data.forEach((arrObj) => {
         const str = arrObj[1].split(' ');
         str.pop();
         str.pop();
@@ -172,10 +271,7 @@ const extractAddresses = function extractAddresses(urlAdress, q, limit) {
         }
         searchResultsBasedOnStreetName[streetName].push(arrObj);
       });
-      // this condition is checked because of the fault in the response from lm.
-      // for example for the query 'stor' we get Brunne and Hundsjö in the answer also!!!
-      // Removed this since it removed good matches
-      // removeErroniousComponents(searchResultsBasedOnStreetName, q);
+      // Iterate through the grouped results to collect matches, ensuring an even spread of results
       do {
         for (const streetName in searchResultsBasedOnStreetName) {
           let nextObj = searchResultsBasedOnStreetName[streetName][i];
@@ -185,7 +281,7 @@ const extractAddresses = function extractAddresses(urlAdress, q, limit) {
         }
         i += 1;
       } while (preliminaryMatches.length < limit && i <= preliminaryMatches.length && i < 100);
-      // array objects are transformed into standards geojson objects and the pushed to matches array
+      // Transform the array objects into standard geojson objects and push to matches array
       const matches = preliminaryMatches.map(arrObj => ({
         NAMN: arrObj[1],
         TYPE: 'hallstakartan.tk_s_ads_p',
@@ -195,50 +291,59 @@ const extractAddresses = function extractAddresses(urlAdress, q, limit) {
       }));
       matches.sort(compareAddress);
       return matches;
-    }).fail((err) => {
+    } catch (err) {
       console.log(`Något gick fel, kunde inte hämta Adresser. Error: ${err}`);
-    });
+      return [];
+    }
   }
   return [];
 };
 
-// Orter
-// OBS: response from lm is a list of geojson objects here:
-const extractOrter = function extractOrter(urlOrt, q, limit) {
+/**
+ * Extracts place names (Orter) from a given URL.
+ * @function
+ * @name extractOrter
+ * @param {string} urlOrt - The URL to fetch place data from.
+ * @param {string} q - The search query string.
+ * @param {number} limit - The maximum number of results to return.
+ * @returns {Promise<Array>} A promise that resolves to an array of places.
+ */
+const extractOrter = async function extractOrter(urlOrt, q, limit) {
   if (urlOrt) {
-    const dataPromise = $.ajax({
-      url: urlOrt,
-      dataType: 'json'
-    });
-
-    return dataPromise.then((response) => {
-      if (response === null || Object.prototype.toString.call(response) !== '[object Array]') {
+    try {
+      const response = await fetch(urlOrt);
+      if (!response.ok) {
+        console.log('Något gick fel, kunde inte hämta Orter.');
         return [];
       }
 
-      // regex used to determine if a string contains the substring 'q'
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        return [];
+      }
+
+      // Regex used to determine if a string contains the substring 'q'
       const substrRegex = new RegExp(`^${q}`, 'i');
       const substrRegexGeneral = new RegExp(q, 'i');
-      // iterate through the pool of strings and for any string that
-      // contains the substring 'q', add it to the 'matches' array
+      // Iterate through the pool of strings and add matches to the 'matches' array
 
-      // an array that will be populated with substring matches
+      // An array that will be populated with substring matches
       const matches = [];
 
-      response.forEach((obj) => {
+      data.forEach((obj) => {
         if (substrRegex.test(obj.properties.name)) {
           matches.push({
             NAMN: obj.properties.name,
             id: obj.properties.id,
-            // "TYPE": "hallstakartan.tk_s_ads_p",
             layer: 'Ort',
             st_astext: `POINT(${obj.geometry.coordinates[1]} ${obj.geometry.coordinates[0]})`,
             geometry_format: 'WKT'
           });
         }
       });
+      // If fewer matches than the limit, add more matches using a general regex
       if (matches.length < limit) {
-        response.forEach((obj) => {
+        data.forEach((obj) => {
           if (substrRegexGeneral.test(obj.properties.name)) {
             matches.push({
               NAMN: obj.properties.name,
@@ -251,41 +356,55 @@ const extractOrter = function extractOrter(urlOrt, q, limit) {
           }
         });
       }
+      // Remove duplicate matches based on the 'id' field
       const duplicateFreeMatches = _.uniqBy(matches, obj => obj.id);
       return duplicateFreeMatches;
-    }).fail(() => {
+    } catch (err) {
       console.log('Något gick fel, kunde inte hämta Orter.');
-    });
+      return [];
+    }
   }
   return [];
 };
 
-// Detaljplaner
-// OBS: response from lm is a list of geojson objects here:
-const extractES = function extractES(elasticSearch, q, limit, viewer) {
+/**
+ * Requests data from an ElasticSearch index and extracts matches.
+ * @function
+ * @name extractES
+ * @param {Object} elasticSearch - ElasticSearch configuration containing URL and search parameters.
+ * @param {string} q - The search query string.
+ * @param {number} limit - The maximum number of results to return.
+ * @param {Object} viewer - Viewer object to handle geographic transformations.
+ * @returns {Promise<Array>} A promise that resolves to an array of search results.
+ */
+const extractES = async function extractES(elasticSearch, q, limit, viewer) {
   if (elasticSearch) {
     let url = elasticSearch.url;
     url += `&q=%22${encodeURI(q)}%22*`;
-
-    const dataPromise = $.ajax({
-      url,
-      dataType: 'json'
-    });
-
-    return dataPromise.then((response) => {
-      if (response === null || Object.prototype.toString.call(response.hits.hits) !== '[object Array]') {
+    const urlWithoutBA = removeBasicAuth(url);
+    try {
+      const response = await fetch(urlWithoutBA.url, {
+        method:'GET', 
+        headers: {'Authorization': 'Basic ' + btoa(urlWithoutBA.username + ":" + urlWithoutBA.password)}
+      });
+      if (!response.ok) {
+        console.log(`Något gick fel, kunde inte hämta ${elasticSearch.name}!`);
         return [];
       }
 
-      // regex used to determine if a string contains the substring 'q'
+      const data = await response.json();
+      if (!Array.isArray(data.hits.hits)) {
+        return [];
+      }
+
+      // Regex used to determine if a string contains the substring 'q'
       const substrRegex = new RegExp(`^${q}`, 'i');
       const substrRegexGeneral = new RegExp(q, 'i');
-      // iterate through the pool of strings and for any string that
-      // contains the substring 'q', add it to the 'matches' array
+      // Iterate through the pool of strings and add matches to the 'matches' array
 
-      // an array that will be populated with substring matches
+      // An array that will be populated with substring matches
       const matches = [];
-      response.hits.hits.forEach((obj) => {
+      data.hits.hits.forEach((obj) => {
         let found = false;
         elasticSearch.searchIn.forEach((search) => {
           found = substrRegex.test(getAttribute(obj, search));
@@ -293,7 +412,6 @@ const extractES = function extractES(elasticSearch, q, limit, viewer) {
             matches.push({
               NAMN: getAttribute(obj, elasticSearch.text),
               id: getAttribute(obj, elasticSearch.id),
-              // "TYPE": "hallstakartan.tk_s_ads_p",
               layer: elasticSearch.name,
               st_astext: viewer.getMapUtils().geojsonToWkt(getAttribute(obj, elasticSearch.geometry)),
               geometry_format: 'WKT'
@@ -302,8 +420,9 @@ const extractES = function extractES(elasticSearch, q, limit, viewer) {
           found = false;
         });
       });
+      // If fewer matches than the limit, add more matches using a general regex
       if (matches.length < limit) {
-        response.hits.hits.forEach((obj) => {
+        data.hits.hits.forEach((obj) => {
           let found = false;
           elasticSearch.searchIn.forEach((search) => {
             found = substrRegexGeneral.test(getAttribute(obj, search));
@@ -320,16 +439,28 @@ const extractES = function extractES(elasticSearch, q, limit, viewer) {
           }
         });
       }
+      // Remove duplicate matches based on the 'id' field
       const duplicateFreeMatches = _.uniqBy(matches, obj => obj.id);
       return duplicateFreeMatches;
-    }).fail(() => {
-      console.log(`Något gick fel, kunde inte hämta ${elasticSearch.name}`);
-    });
+    } catch (err) {
+      console.log(`Något gick fel, kunde inte hämta ${elasticSearch.name}! ${err.statusText}`);
+      return [];
+    }
   }
   return [];
 };
 
+/**
+ * Makes a request to multiple endpoints to gather suggestions.
+ * @function
+ * @name makeRequest
+ * @param {Object} prepOptions - Options to prepare the request, including URLs and search parameters.
+ * @param {string} q - The search query string.
+ * @param {Object} viewer - Viewer object for geographic transformations.
+ * @returns {Promise<Array>} A promise that resolves to an array of suggestions from multiple sources.
+ */
 const makeRequest = function makeRequest(prepOptions, q, viewer) {
+  // Prepare municipality data for the request
   const municipalities = prepMunicipalities(prepOptions.municipalities);
   const limit = prepOptions.limit;
   let urlFastighet = '';
@@ -356,6 +487,7 @@ const makeRequest = function makeRequest(prepOptions, q, viewer) {
     urlOrt += `&kommunkod=${codes}&q=${encodeURI(q)}`;
   }
 
+  // Make parallel requests to different endpoints and return the combined result
   return Promise.all([
     extractNames(urlFastighet),
     extractAddresses(urlAdress, q, limit),
