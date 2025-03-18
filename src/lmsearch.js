@@ -1,6 +1,6 @@
 // Importing Origo framework and the main module for the search functionality
 import Origo from 'Origo';
-import Main from './lmsearch/Main';
+import Main from './lmsearch/main';
 
 // Defining the Lmsearch component as a function
 const Lmsearch = function Lmsearch(options = {}) {

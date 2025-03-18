@@ -1,6 +1,6 @@
 import communeCodes from './communecodes';
+import _ from 'lodash';
 
-const _ = require('lodash');
 /*
   {
    "NAMN": "Erik vallers väg 12a",
