@@ -1,0 +1,24 @@
+{
+    "lmsearch": {
+        "title": "Hakutulos",
+        "hintText": "Osoite, kiinteistö...",
+        "searchLabelText": "Haku:",
+        "tooltipText": "Näytä kiinteistö",
+        "ariaLabelSearch": "Haku",
+        "ariaLabelClear": "Tyhjennä",
+        "responseNoHit": "Ei tuloksia",
+        "communityAssociation": "Yhteisöyhdistys",
+        "communityAssociationDesignation": "Nimike",
+        "communityAssociationLandArea": "Pinta-ala",
+        "communityAssociationWaterArea": "Vesialue",
+        "communityAssociationRegisteredArea": "Rekisteröity alue",
+        "communityAssociationLastChanged": "Viimeksi muutettu",
+        "communityAssociationStatus": "Tila",
+        "communityAssociationPurpose": "Tarkoitus",
+        "communityAssociationTitle": "Kiinteistötieto",
+        "showFeatureInfoTitle": "Kiinteistö",
+        "layerNameEstates": "Kiinteistö",
+        "layerNameAddresses": "Osoite",
+        "layerNamePlaces": "Paikka"
+    }
+}

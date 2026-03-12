@@ -195,7 +195,7 @@ function removeBasicAuth(url) {
  * @param {string} urlFastighet - The URL to fetch property data from.
  * @returns {Promise<Array>} A promise that resolves to an array of property names.
  */
-const extractNames = async function extractNames(urlFastighet) {
+const extractNames = async function extractNames(urlFastighet, localization) {
   if (!urlFastighet) return [];
 
   try {
@@ -213,7 +213,7 @@ const extractNames = async function extractNames(urlFastighet) {
         NAMN: obj.properties.name,
         id: obj.properties.objid,
         TYPE: 'hallstakartan.tk_s_ads_p',
-        layer: 'Fastighet',
+        layer: localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'layerNameEstates' }),
       }));
 
       // Assuming compareFastighet is defined elsewhere to sort the matches
@@ -238,7 +238,7 @@ const extractNames = async function extractNames(urlFastighet) {
  * @param {number} limit - The maximum number of results to return.
  * @returns {Promise<Array>} A promise that resolves to an array of addresses.
  */
-const extractAddresses = async function extractAddresses(urlAdress, q, limit) {
+const extractAddresses = async function extractAddresses(urlAdress, q, limit, localization) {
   if (urlAdress) {
     try {
       const response = await fetch(urlAdress);
@@ -285,7 +285,7 @@ const extractAddresses = async function extractAddresses(urlAdress, q, limit) {
       const matches = preliminaryMatches.map(arrObj => ({
         NAMN: arrObj[1],
         TYPE: 'hallstakartan.tk_s_ads_p',
-        layer: 'Adress',
+        layer: localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'layerNameAddresses' }),
         st_astext: `POINT(${arrObj[2]} ${arrObj[3]})`,
         geom_format: 'WKT'
       }));
@@ -308,7 +308,7 @@ const extractAddresses = async function extractAddresses(urlAdress, q, limit) {
  * @param {number} limit - The maximum number of results to return.
  * @returns {Promise<Array>} A promise that resolves to an array of places.
  */
-const extractOrter = async function extractOrter(urlOrt, q, limit) {
+const extractOrter = async function extractOrter(urlOrt, q, limit, localization) {
   if (urlOrt) {
     try {
       const response = await fetch(urlOrt);
@@ -335,7 +335,7 @@ const extractOrter = async function extractOrter(urlOrt, q, limit) {
           matches.push({
             NAMN: obj.properties.name,
             id: obj.properties.id,
-            layer: 'Ort',
+            layer: localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'layerNamePlaces' }),
             st_astext: `POINT(${obj.geometry.coordinates[1]} ${obj.geometry.coordinates[0]})`,
             geometry_format: 'WKT'
           });
@@ -349,7 +349,7 @@ const extractOrter = async function extractOrter(urlOrt, q, limit) {
               NAMN: obj.properties.name,
               id: obj.properties.id,
               TYPE: 'hallstakartan.tk_s_ads_p',
-              layer: 'Ort',
+              layer: localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'layerNamePlaces' }),
               st_astext: `POINT(${obj.geometry.coordinates[1]} ${obj.geometry.coordinates[0]})`,
               geometry_format: 'WKT'
             });
@@ -459,7 +459,7 @@ const extractES = async function extractES(elasticSearch, q, limit, viewer) {
  * @param {Object} viewer - Viewer object for geographic transformations.
  * @returns {Promise<Array>} A promise that resolves to an array of suggestions from multiple sources.
  */
-const makeRequest = function makeRequest(prepOptions, q, viewer) {
+const makeRequest = function makeRequest(prepOptions, q, viewer, localization) {
   // Prepare municipality data for the request
   const municipalities = prepMunicipalities(prepOptions.municipalities);
   const limit = prepOptions.limit;
@@ -489,9 +489,9 @@ const makeRequest = function makeRequest(prepOptions, q, viewer) {
 
   // Make parallel requests to different endpoints and return the combined result
   return Promise.all([
-    extractNames(urlFastighet),
-    extractAddresses(urlAdress, q, limit),
-    extractOrter(urlOrt, q, limit),
+    extractNames(urlFastighet, localization),
+    extractAddresses(urlAdress, q, limit, localization),
+    extractOrter(urlOrt, q, limit, localization),
     extractES(prepOptions.elasticSearch, q, limit, viewer)
   ])
     .then(data => data)
