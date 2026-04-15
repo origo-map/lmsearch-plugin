@@ -54,7 +54,7 @@ Requires Origo 2.1.1 or later and a Origoserver
             },
             "circle": {
               "radius": 7,
-              stroke": {
+              "stroke": {
                 "color": [100, 149, 237, 1],
                 "width": 2
               },
