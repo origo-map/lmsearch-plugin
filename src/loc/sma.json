@@ -1,0 +1,24 @@
+{
+    "lmsearch": {
+        "title": "Searjsegoe",
+        "hintText": "Aadn, bijjove....",
+        "searchLabelText": "Searjse:",
+        "tooltipText": "Vis sjoen",
+        "ariaLabelSearch": "Searjse",
+        "ariaLabelClear": "Suohtse",
+        "responseNoHit": "Inge searjse",
+        "communityAssociation": "Biejjiehpa njuhke",
+        "communityAssociationDesignation": "Niestiehke",
+        "communityAssociationLandArea": "Máhtte",
+        "communityAssociationWaterArea": "Váhke",
+        "communityAssociationRegisteredArea": "Registrerhpa máhtte",
+        "communityAssociationLastChanged": "Oavttihpa",
+        "communityAssociationStatus": "Bárge",
+        "communityAssociationPurpose": "Mååtsi",
+        "communityAssociationTitle": "Biejjiehpatietne",
+        "showFeatureInfoTitle": "Biejjie",
+        "layerNameEstates": "Biejjie",
+        "layerNameAddresses": "Aadn",
+        "layerNamePlaces": "Gærjjen"
+    }
+}

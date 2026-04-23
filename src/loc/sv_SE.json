@@ -1,0 +1,24 @@
+{
+    "lmsearch": {
+        "title": "Sökresultat",
+        "hintText": "Adress, fastighet...",
+        "searchLabelText": "Sök:",
+        "tooltipText": "Visa fastighet",
+        "ariaLabelSearch": "Sök",
+        "ariaLabelClear": "Rensa",
+        "responseNoHit": "Ingen träff",
+        "communityAssociation": "Samfällighet",
+        "communityAssociationDesignation": "Beteckning",
+        "communityAssociationLandArea": "Land area",
+        "communityAssociationWaterArea": "Vatten area",
+        "communityAssociationRegisteredArea": "Register area",
+        "communityAssociationLastChanged": "Senaste ändring",
+        "communityAssociationStatus": "Status",
+        "communityAssociationPurpose": "Samfällighetsändamål",
+        "communityAssociationTitle": "Fastighetsinformation",
+        "showFeatureInfoTitle": "Fastighet",
+        "layerNameEstates": "Fastighet",
+        "layerNameAddresses": "Adress",
+        "layerNamePlaces": "Ort"
+    }
+}

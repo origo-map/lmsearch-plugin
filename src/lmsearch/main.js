@@ -78,6 +78,7 @@ const Main = function Main(options = {}) {
   } = options;
   let urlYta;
   let urlYtaKord;
+  const localization = viewer.getControlByName('localization');
 
   const keyCodes = {
     9: 'tab',
@@ -189,8 +190,8 @@ const Main = function Main(options = {}) {
       searchableDefault = Object.prototype.hasOwnProperty.call(options, 'searchableDefault') ? options.searchableDefault : false;
       maxZoomLevel = options.maxZoomLevel || viewer.getResolutions().length - 2 || viewer.getResolutions();
       this.limit = options.limit || 9;
-      this.hintText = options.hintText || 'Sök...';
-      this.searchLabelText = options.searchLabelText || 'Sök:';
+      this.hintText = options.hintText || localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'hintText' });
+      this.searchLabelText = options.searchLabelText || localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'searchLabelText' });
       this.minLength = options.minLength || 4;
       projectionCode = viewer.getProjectionCode();
       map = viewer.getMap();
@@ -231,7 +232,7 @@ const Main = function Main(options = {}) {
           state: estateLookupInitialState,
           validStates: ['initial', 'active'],
           icon: '#ic_crop_square_24px',
-          tooltipText: 'Visa fastighet',
+          tooltipText: localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'tooltipText' }),
           tooltipPlacement: 'east',
           methods: {}
         });
@@ -304,12 +305,12 @@ const Main = function Main(options = {}) {
           </span>
           <ul hidden=""></ul>
           <span class="visually-hidden" role="status" aria-live="assertive" aria-relevant="additions"></span>
-          <button id="o-lmsearch-button" class="o-search-button no-shrink no-grow compact icon-small" style="" aria-label="Sök">
+          <button id="o-lmsearch-button" class="o-search-button no-shrink no-grow compact icon-small" style="" aria-label="${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'ariaLabelSearch' })}">
           <span class="icon grey">
           <svg class="o-icon-24" class="grey" style><use xlink:href="#ic_search_24px"></use></svg>
           </span>
           </button>
-          <button id="o-lmsearch-button-close" class="o-search-button-close no-shrink no-grow compact icon-small" style="" aria-label="Rensa">
+          <button id="o-lmsearch-button-close" class="o-search-button-close no-shrink no-grow compact icon-small" style="" aria-label="${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'ariaLabelClear' })}">
           <span class="icon grey">
           <svg class="o-icon-24" class="grey" style><use xlink:href="#ic_close_24px"></use></svg>
           </span>
@@ -424,7 +425,7 @@ const Main = function Main(options = {}) {
         let result = data;
         if (result.length === 0) {
           result = [{ label: 'Ingen träff', value: '' }];
-          document.getElementById('o-lmsearch-info').innerHTML = 'Ingen träff';
+          document.getElementById('o-lmsearch-info').innerHTML = localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'responseNoHit' });
           document.getElementById('o-lmsearch-info').style.display = 'flex';
         } else {
           document.getElementById('o-lmsearch-info').innerHTML = '';
@@ -474,7 +475,7 @@ const Main = function Main(options = {}) {
         let data = [];
         console.log('making new request');
         clearSearchResults(); // to prevent showing old result while waiting for the new response
-        prepSuggestions.makeRequest(prepOptions, obj.value, viewer).then((response) => {
+        prepSuggestions.makeRequest(prepOptions, obj.value, viewer, localization).then((response) => {
           // IE cannot handle spread syntax. Use flattenData function instead.
           data = flattenData(response);
           handler(data);
@@ -593,14 +594,14 @@ const Main = function Main(options = {}) {
             if (features[0].get('typ').toLowerCase() === 'samfällighet') {
               const samfallighetsattribut = features[0].get('samfallighetsattribut');
               const beteckning = features[0].get('name');
-              // Create HTML content for the estate report, conditionally including available attributes
-              pageEstateReport = `<h1>Samfällighet</h1><p><b>Beteckning:</b> ${beteckning.slice(0, beteckning.indexOf('Enhetesområde'))}</p>
-              ${typeof samfallighetsattribut.totalLandarea !== 'undefined' ? `<p><b>Land area:</b> ${samfallighetsattribut.totalLandarea}</p>` : ''}
-              ${typeof samfallighetsattribut.totalVattenarea !== 'undefined' ? `<p><b>Vatten area:</b> ${samfallighetsattribut.totalVattenarea}</p>` : ''}
-              ${typeof samfallighetsattribut.totalareal !== 'undefined' ? `<p><b>Register area:</b> ${samfallighetsattribut.totalareal}</p>` : ''}
-              ${typeof samfallighetsattribut.senasteAndringAllmannaDelen !== 'undefined' ? `<p><b>Senaste ändring:</b> ${samfallighetsattribut.senasteAndringAllmannaDelen}</p>` : ''}
-              ${typeof samfallighetsattribut.status !== 'undefined' ? `<p><b>Status:</b> ${samfallighetsattribut.status}</p>` : ''}
-              ${typeof samfallighetsattribut.samfallighetsandamal !== 'undefined' ? `<p><b>Samfällighetsändamål:</b> ${samfallighetsattribut.samfallighetsandamal}</p>` : ''}`;
+              // Create HTML content for the estate report, conditionally including available attributes 
+              pageEstateReport = `<h1>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociation' })}</h1><p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationDesignation' })}:</b> ${beteckning.slice(0, beteckning.indexOf('Enhetesområde'))}</p>
+              ${typeof samfallighetsattribut.totalLandarea !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationLandArea' })}:</b> ${samfallighetsattribut.totalLandarea}</p>` : ''}
+              ${typeof samfallighetsattribut.totalVattenarea !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationWaterArea' })}:</b> ${samfallighetsattribut.totalVattenarea}</p>` : ''}
+              ${typeof samfallighetsattribut.totalareal !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationRegisteredArea' })}:</b> ${samfallighetsattribut.totalareal}</p>` : ''}
+              ${typeof samfallighetsattribut.senasteAndringAllmannaDelen !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationLastChanged' })}:</b> ${samfallighetsattribut.senasteAndringAllmannaDelen}</p>` : ''}
+              ${typeof samfallighetsattribut.status !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationStatus' })}:</b> ${samfallighetsattribut.status}</p>` : ''}
+              ${typeof samfallighetsattribut.samfallighetsandamal !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationPurpose' })}:</b> ${samfallighetsattribut.samfallighetsandamal}</p>` : ''}`;
             } else {
               // If not 'samfällighet', display the estate report in an iframe
               pageEstateReport = `<iframe src="${pageEstateReportUrl}${objectId}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`;
@@ -608,7 +609,7 @@ const Main = function Main(options = {}) {
             // Create an icon feature for displaying the estate report information on the map
             const iconFeature = new Origo.ol.Feature({
               geometry: new Origo.ol.geom.Point(viewer.getMapUtils().getCenter(features[0].getGeometry())),
-              name: 'Fastighetsinformation',
+              name: localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationTitle' }),
               objektidentitet: objectId,
               pageEstateReport
             });
@@ -683,7 +684,7 @@ const Main = function Main(options = {}) {
         layer = viewer.getLayer(data[layerName]);
         showFeatureInfo([feature], layer.get('title'), Origo.getAttributes(feature, layer));
       } else if (titleAttribute && contentAttribute && geometryAttribute) {
-        if (data[layerNameAttribute] === 'Fastighet') {
+        if (data[layerNameAttribute] === localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'layerNameEstates' })) {
           const objectId = data.id;
           const areaPromise = fetchFastighetsYtaById(objectId);
 
@@ -838,20 +839,20 @@ const Main = function Main(options = {}) {
             if (features[0].get('typ').toLowerCase() === 'samfällighet') {
               const samfallighetsattribut = features[0].get('samfallighetsattribut');
               const beteckning = features[0].get('name');
-              pageEstateReport = `<h1>Samfällighet</h1><p><b>Beteckning:</b> ${beteckning.slice(0, beteckning.indexOf('Enhetesområde'))}</p>
-              ${typeof samfallighetsattribut.totalLandarea !== 'undefined' ? `<p><b>Land area:</b> ${samfallighetsattribut.totalLandarea}</p>` : ''}
-              ${typeof samfallighetsattribut.totalVattenarea !== 'undefined' ? `<p><b>Vatten area:</b> ${samfallighetsattribut.totalVattenarea}</p>` : ''}
-              ${typeof samfallighetsattribut.totalareal !== 'undefined' ? `<p><b>Register area:</b> ${samfallighetsattribut.totalareal}</p>` : ''}
-              ${typeof samfallighetsattribut.senasteAndringAllmannaDelen !== 'undefined' ? `<p><b>Senaste ändring:</b> ${samfallighetsattribut.senasteAndringAllmannaDelen}</p>` : ''}
-              ${typeof samfallighetsattribut.status !== 'undefined' ? `<p><b>Status:</b> ${samfallighetsattribut.status}</p>` : ''}
-              ${typeof samfallighetsattribut.samfallighetsandamal !== 'undefined' ? `<p><b>Samfällighetsändamål:</b> ${samfallighetsattribut.samfallighetsandamal}</p>` : ''}`;
+              pageEstateReport = `<h1>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociation' })}</h1><p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationDesignation' })}:</b> ${beteckning.slice(0, beteckning.indexOf('Enhetesområde'))}</p>
+              ${typeof samfallighetsattribut.totalLandarea !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationLandArea' })}:</b> ${samfallighetsattribut.totalLandarea}</p>` : ''}
+              ${typeof samfallighetsattribut.totalVattenarea !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationWaterArea' })}:</b> ${samfallighetsattribut.totalVattenarea}</p>` : ''}
+              ${typeof samfallighetsattribut.totalareal !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationRegisteredArea' })}:</b> ${samfallighetsattribut.totalareal}</p>` : ''}
+              ${typeof samfallighetsattribut.senasteAndringAllmannaDelen !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationLastChanged' })}:</b> ${samfallighetsattribut.senasteAndringAllmannaDelen}</p>` : ''}
+              ${typeof samfallighetsattribut.status !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationStatus' })}:</b> ${samfallighetsattribut.status}</p>` : ''}
+              ${typeof samfallighetsattribut.samfallighetsandamal !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationPurpose' })}:</b> ${samfallighetsattribut.samfallighetsandamal}</p>` : ''}`;
             } else {
               // If not 'samfällighet', create an iframe to show the report
               pageEstateReport = `<iframe src="${pageEstateReportUrl}${features[0].getProperties().objektidentitet}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`;
             }
             const iconFeature = new Origo.ol.Feature({
               geometry: new Origo.ol.geom.Point(coordinate), // Set the geometry of the estate report icon
-              name: 'Fastighetsinformation',
+              name: localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationTitle' }),
               objektidentitet: features[0].getProperties().objektidentitet,
               pageEstateReport
             });
@@ -934,7 +935,7 @@ const Main = function Main(options = {}) {
             contentArr.push(viewer.getUtils().createElement('p', `<b>${prop[0]}:</b><br/> ${prop[1]}`)) // Add all properties for the first feature to content
           });
           contentArr.push(`</div>`)
-         showFeatureInfo(features, 'Fastighet', contentArr.join(''), coordinate); // Display feature information
+          showFeatureInfo(features, localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'showFeatureInfoTitle' }), contentArr.join(''), coordinate); // Display feature information
         }).catch((err) => {
           console.log(err); // Log any errors during the fetch process
         });
