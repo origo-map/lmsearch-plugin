@@ -66,10 +66,10 @@ Requires Origo 2.1.1 or later and a Origoserver
           "labelFont": '7pt sans-serif',
           "labelFontColor": [100, 149, 237, 0.3],
           "labelBackgroundColor": [255, 255, 255, 0.5],
-          "url_fastighet": "https://exempel.se/origoserver/lm/registerenheter?srid=3006",
-          "url_adress": "https://exempel.se/origoserver/lm/addresses?srid=3006",
-          "url_ort": "https://exempel.se/origoserver/lm/placenames?srid=3006",
-          "url_yta": "https://exempel.se/origoserver/lm/registerenheter/objectId/enhetsomraden?srid=3006",
+          "urlFastighet": "https://exempel.se/origoserver/lm/registerenheter?srid=3006",
+          "urlAdress": "https://exempel.se/origoserver/lm/addresses?srid=3006",
+          "urlOrt": "https://exempel.se/origoserver/lm/placenames?srid=3006",
+          "urlYta": "https://exempel.se/origoserver/lm/registerenheter/objectId/enhetsomraden?srid=3006",
           "urlYtaKordinat": "https://exempel.se/origoserver/lm/enhetsomraden?x=easting&y=northing&srid=3006",
           "elasticSearch": {
             "url": "https://exempel.se/search/es/_search?_dc=1608289134133&page=1&start=0&limit=25",
@@ -134,13 +134,13 @@ The configuration options explained:
 
 - labelBackgroundColor - the background color that should be used for the label on the estate in the estate click function, default is '[255, 255, 255, 0.5]'.
 
-- url_fastighet - the url to search for estates. If not set estate lookup will not be include in the searches.
+- urlFastighet - the url to search for estates. If not set estate lookup will not be include in the searches.
 
-- url_adress - the url to search for addresses. If not set address lookup will not be include in the searches.
+- urlAdress - the url to search for addresses. If not set address lookup will not be include in the searches.
 
-- url_ort - the url to search for places. If not set placenames lookup will not be include in the searches.
+- urlOrt - the url to search for places. If not set placenames lookup will not be include in the searches.
 
-- url_yta - the url to retrieve the geometry for a estate.
+- urlYta - the url to retrieve the geometry for a estate.
 
 - urlYtaKordinat - the url to retrieve the estate for a coordinate.
 
