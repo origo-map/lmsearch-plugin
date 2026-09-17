@@ -16,9 +16,13 @@
         "communityAssociationStatus": "Status",
         "communityAssociationPurpose": "Purpose",
         "communityAssociationTitle": "Estate information",
+        "communityAssociationMembers": "Part Owners",
+        "communityAssociationOtherPartOwner": "Other Part Owner",
         "showFeatureInfoTitle": "Estate",
         "layerNameEstates": "Estate",
         "layerNameAddresses": "Address",
-        "layerNamePlaces": "Place"
+        "layerNamePlaces": "Place",
+        "objectidentity": "Object Identity",
+        "type": "Type"
     }
 }

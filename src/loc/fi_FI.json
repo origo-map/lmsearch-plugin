@@ -16,9 +16,13 @@
         "communityAssociationStatus": "Tila",
         "communityAssociationPurpose": "Tarkoitus",
         "communityAssociationTitle": "Kiinteistötieto",
+        "communityAssociationMembers": "Yhteisöyhdistyksen jäsenet",
+        "communityAssociationOtherPartOwner": "Toinen kumppani",
         "showFeatureInfoTitle": "Kiinteistö",
         "layerNameEstates": "Kiinteistö",
         "layerNameAddresses": "Osoite",
-        "layerNamePlaces": "Paikka"
+        "layerNamePlaces": "Paikka",
+        "objectidentity": "Objektin identiteetti",
+        "type": "Tyyppi"
     }
 }

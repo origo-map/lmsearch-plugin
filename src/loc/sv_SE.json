@@ -16,9 +16,13 @@
         "communityAssociationStatus": "Status",
         "communityAssociationPurpose": "Samfällighetsändamål",
         "communityAssociationTitle": "Fastighetsinformation",
+        "communityAssociationMembers": "Samfällighetens delägare",
+        "communityAssociationOtherPartOwner": "Annan delägare",
         "showFeatureInfoTitle": "Fastighet",
         "layerNameEstates": "Fastighet",
         "layerNameAddresses": "Adress",
-        "layerNamePlaces": "Ort"
+        "layerNamePlaces": "Ort",
+        "objectidentity": "Objektidentitet",
+        "type": "Typ"
     }
 }
