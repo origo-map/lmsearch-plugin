@@ -11,7 +11,7 @@
     "max-len": "off",
     "import/no-extraneous-dependencies": ["error", {
       "devDependencies": [
-        "tasks/**"
+        "vite.config.js"
       ],
       "optionalDependencies": false
     }]
