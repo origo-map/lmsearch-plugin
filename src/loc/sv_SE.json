@@ -16,6 +16,7 @@
         "communityAssociationStatus": "Status",
         "communityAssociationPurpose": "Samfällighetsändamål",
         "communityAssociationTitle": "Fastighetsinformation",
+        "communityAssociationShare": "Andel",
         "communityAssociationMembers": "Samfällighetens delägare",
         "communityAssociationOtherPartOwner": "Annan delägare",
         "showFeatureInfoTitle": "Fastighet",

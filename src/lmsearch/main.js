@@ -236,6 +236,7 @@ const Main = function Main(options = {}) {
     const delagare = feature.get('delagare');
     const beteckning = feature.get('name');
     const designationLabel = localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationDesignation' });
+    const shareLabel = localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationShare' });
     const showEstateLabel = localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'tooltipText' });
     // Create HTML content for the estate report, conditionally including available attributes
     let pageEstateReport = `<div class="o-lmsearch-estate-report"><h1>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociation' })}</h1><p><b>${designationLabel}:</b> ${beteckning.slice(0, beteckning.indexOf('Enhetesområde'))}</p>
@@ -252,7 +253,12 @@ const Main = function Main(options = {}) {
           const partOwner = delagareItem.delagare;
           // The designation is a link that searches for the estate of the part owner and shows it in the map
           const designation = typeof partOwner.objektidentitet !== 'undefined' ? `<button type="button" class="${partOwnerLinkCls}" data-objektidentitet="${partOwner.objektidentitet}" data-beteckning="${partOwner.beteckning}" title="${showEstateLabel}">${partOwner.beteckning}</button>` : partOwner.beteckning;
-          pageEstateReport += `<li class="${partOwnerItemCls}"><b>${designationLabel}:</b> ${designation}</li>`;
+          // The share is either a property of the part owner or of the part ownership itself, depending on the response
+          const andel = typeof partOwner.andel !== 'undefined' ? partOwner.andel : delagareItem.andel;
+          const andelssort = typeof partOwner.andelssort !== 'undefined' ? partOwner.andelssort : delagareItem.andelssort;
+          // The type of share is separated from the share with a space
+          const share = typeof andel !== 'undefined' ? `${andel}${typeof andelssort !== 'undefined' ? ` ${andelssort}` : ''}` : '';
+          pageEstateReport += `<li class="${partOwnerItemCls}"><b>${designationLabel}:</b> ${designation}${share !== '' ? ` <b>${shareLabel}:</b> ${share}` : ''}</li>`;
         }
         if ('annanDelagare' in delagareItem) {
           pageEstateReport += `<li class="${partOwnerItemCls}"><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationOtherPartOwner' })}:</b> ${delagareItem.annanDelagare.skifteslagDelagare}</li>`;
