@@ -5,53 +5,26 @@
   "main": "lmsearch.js",
   "scripts": {
     "start": "npm run prebuild-sass | run-p watch-js watch-sass",
-    "watch-js": "webpack-dev-server --config ./tasks/webpack.dev.js --mode development",
+    "watch-js": "vite build --watch --mode development",
     "watch-sass": "sass -w --load-path scss --load-path . scss/lmsearch-plugin.scss ../origo/plugins/lmsearch.css",
     "prebuild-sass": "sass --load-path scss --load-path . scss/lmsearch-plugin.scss ../origo/plugins/lmsearch.css",
-    "build": "webpack --config ./tasks/webpack.prod.js && npm run build-sass",
-    "build-sass": "sass --load-path scss --load-path . scss/lmsearch-plugin.scss build/css/lmsearch.css"
+    "build": "vite build && npm run build-sass",
+    "build-sass": "sass --load-path scss --load-path . scss/lmsearch-plugin.scss build/css/lmsearch.css",
+    "analyze": "vite build --mode analyze"
   },
   "author": "Johnny Blästa",
   "license": "MIT",
   "dependencies": {
-    "@babel/runtime-corejs2": "^7.28.6",
     "awesomplete": "^1.1.7",
-    "lodash": "^4.17.23",
-    "owl.carousel": "^2.3.4",
-    "path-browserify": "^1.0.1",
-    "terser-webpack-plugin": "^5.4.0",
-    "whatwg-fetch": "^3.6.20"
+    "lodash": "^4.17.23"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
-    "@babel/plugin-transform-runtime": "^7.29.0",
-    "@babel/preset-env": "^7.29.0",
-    "@babel/runtime": "^7.28.6",
-    "autoprefixer": "^10.4.27",
-    "babel-eslint": "^10.1.0",
-    "babel-loader": "^10.1.1",
-    "babel-polyfill": "^6.26.0",
-    "compression-webpack-plugin": "^12.0.0",
-    "css-loader": "^7.1.4",
     "eslint": "^8.0.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-webpack-plugin": "^5.0.3",
-    "exports-loader": "^5.0.0",
-    "imports-loader": "^5.0.0",
-    "mini-css-extract-plugin": "^2.10.1",
     "npm-run-all": "^4.1.5",
-    "postcss-loader": "^8.2.1",
+    "rollup-plugin-visualizer": "^6.0.4",
     "sass-embedded": "^1.98.0",
-    "sass-loader": "^16.0.7",
-    "serialize-javascript": "^7.0.4",
-    "source-map-loader": "^5.0.0",
-    "style-loader": "^4.0.0",
-    "webpack": "^5.105.4",
-    "webpack-bundle-analyzer": "^5.2.0",
-    "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.3",
-    "webpack-merge": "^6.0.1",
-    "write-file-webpack-plugin": "^4.5.1"
+    "vite": "^7.1.5"
   }
 }
