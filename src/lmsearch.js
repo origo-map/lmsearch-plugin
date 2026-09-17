@@ -1,6 +1,11 @@
 // Importing Origo framework and the main module for the search functionality
 import Origo from 'Origo';
 import Main from './lmsearch/main';
+import svLocale from './loc/sv_SE.json';
+import enLocale from './loc/en_US.json';
+import nlLocale from './loc/nl_NL.json';
+import fiLocale from './loc/fi_FI.json';
+import smaLocale from './loc/sma.json';
 
 // Defining the Lmsearch component as a function
 const Lmsearch = function Lmsearch(options = {}) {
@@ -43,13 +48,20 @@ const Lmsearch = function Lmsearch(options = {}) {
 
   let viewer; // Holds a reference to the Origo viewer
   let search; // Holds a reference to the search functionality
-
+  
   // Returning a custom Origo component
   return Origo.ui.Component({
     name: 'lmsearch', // Name of the component
     onAdd(evt) {
       // Executes when the component is added to the Origo viewer
       viewer = evt.target; // Assigns the Origo viewer to the variable
+
+      const localization = viewer.getControlByName('localization');
+      localization.addPluginToLocale('sv-SE', svLocale); // Add swedish locale
+      localization.addPluginToLocale('en-US', enLocale); // Add english locale
+      localization.addPluginToLocale('fi-FI', fiLocale); // Add finnish locale
+      localization.addPluginToLocale('nl-NL', nlLocale); // Add nederland locale
+      localization.addPluginToLocale('sma', smaLocale); // Add South sami locale
 
       // Initializes the main module for the search functionality
       search = Main({

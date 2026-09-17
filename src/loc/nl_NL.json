@@ -1,0 +1,24 @@
+{
+    "lmsearch": {
+        "title": "Zoekresultaat",
+        "hintText": "Adres, vastgoed...",
+        "searchLabelText": "Zoeken:",
+        "tooltipText": "Toon vastgoed",
+        "ariaLabelSearch": "Zoeken",
+        "ariaLabelClear": "Wissen",
+        "responseNoHit": "Geen resultaten",
+        "communityAssociation": "Gemeenschapsvereniging",
+        "communityAssociationDesignation": "Benaming",
+        "communityAssociationLandArea": "Opppervlakte land",
+        "communityAssociationWaterArea": "Wateroppervlakte",
+        "communityAssociationRegisteredArea": "Geregistreerd gebied",
+        "communityAssociationLastChanged": "Laatst gewijzigd",
+        "communityAssociationStatus": "Status",
+        "communityAssociationPurpose": "Doel",
+        "communityAssociationTitle": "Vastgoedinformatie",
+        "showFeatureInfoTitle": "Vastgoed",
+        "layerNameEstates": "Vastgoed",
+        "layerNameAddresses": "Adres",
+        "layerNamePlaces": "Plaats"
+    }
+}

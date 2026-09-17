@@ -1,0 +1,24 @@
+{
+    "lmsearch": {
+        "title": "Search result",
+        "hintText": "Address, estate...",
+        "searchLabelText": "Search:",
+        "tooltipText": "Show estate",
+        "ariaLabelSearch": "Search",
+        "ariaLabelClear": "Clear",
+        "responseNoHit": "No hit",
+        "communityAssociation": "Community Association",
+        "communityAssociationDesignation": "Designation",
+        "communityAssociationLandArea": "Land area",
+        "communityAssociationWaterArea": "Water area",
+        "communityAssociationRegisteredArea": "Registered area",
+        "communityAssociationLastChanged": "Last changed",
+        "communityAssociationStatus": "Status",
+        "communityAssociationPurpose": "Purpose",
+        "communityAssociationTitle": "Estate information",
+        "showFeatureInfoTitle": "Estate",
+        "layerNameEstates": "Estate",
+        "layerNameAddresses": "Address",
+        "layerNamePlaces": "Place"
+    }
+}
