@@ -16,9 +16,14 @@
         "communityAssociationStatus": "Bárge",
         "communityAssociationPurpose": "Mååtsi",
         "communityAssociationTitle": "Biejjiehpatietne",
+        "communityAssociationShare": "Oasse",
+        "communityAssociationMembers": "Oassálastegårh",
+        "communityAssociationOtherPartOwner": "Eará oassálaste",
         "showFeatureInfoTitle": "Biejjie",
         "layerNameEstates": "Biejjie",
         "layerNameAddresses": "Aadn",
-        "layerNamePlaces": "Gærjjen"
+        "layerNamePlaces": "Gærjjen",
+        "objectidentity": "Objektidentiteete",
+        "type": "Tïjpe"
     }
 }

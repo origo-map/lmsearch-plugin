@@ -138,6 +138,240 @@ const Main = function Main(options = {}) {
       estateLookupOn = false;
     }
   };
+  // Classes used to mark up the part owners in the estate report of a community association
+  const partOwnerLinkCls = 'o-lmsearch-partowner';
+  const partOwnerItemCls = 'o-lmsearch-partowner-item';
+
+  /**
+   * Clears the feature information and any overlay shown on the map.
+   */
+  const clearFeatureInfo = function clearFeatureInfo() {
+    featureInfo.clear();
+    if (overlay) {
+      viewer.removeOverlays(overlay); // Remove any existing overlays
+    }
+  };
+
+  /**
+   * Clears all features from the vector source.
+   */
+  const clearVectorFeatures = function clearVectorFeatures() {
+    vectorSource.clear(); // Clear all vector features from the source
+  };
+
+  /**
+   * Fetches the property area for a given object ID.
+   *
+   * @param {string} objectId - The ID of the property object to fetch the area for.
+   * @returns {Promise<Object>} A promise that resolves to the JSON response containing the property area data.
+   * @throws {Error} Throws an error if the network response is not ok.
+   */
+  const fetchFastighetsYtaById = function fetchFastighetsYtaById(objectId) {
+    // Replace 'objectId' placeholder in the URL with the actual object ID
+    const urlTemp = urlYta.replace('objectId', objectId);
+
+    // Fetch the data from the constructed URL
+    return fetch(urlTemp)
+      .then((response) => {
+        if (!response.ok) {
+          // Throw an error if the response status is not successful
+          throw new Error('Network response was not ok');
+        }
+        // Return the JSON data from the response
+        return response.json();
+      })
+      .catch((error) => {
+        // Log an error message if the fetch operation fails
+        console.log('There has been a problem with your fetch operation:', error);
+      });
+  };
+
+  /**
+   * Reads the estate features from a response from the estate area service.
+   * @param {Object} response - The GeoJSON response from the estate area service.
+   * @returns {Array} The features where the first one holds the complete geometry.
+   */
+  const readEstateFeatures = function readEstateFeatures(response) {
+    const format = new Origo.ol.format.GeoJSON();
+    const features = format.readFeatures(response);
+    /*
+      If the response is a feature collection we read the geometries into a multipolygon instead.
+      This is becase Origo will ignore multiple geometries and only display the first if we do not do it this way
+      A Better solution would probably be to patch origo so that it handles this in a better way but it's not a
+      well defined way to do this in a generic way as there are multiple features with both multiple attributes as well as geometries.
+      How should that be handled? In this function, at least we know from what service the data comes from.
+    */
+    if (features.length > 1) {
+      console.log('Found FeatureCollection with multiple features. Trying to merge them into a Multigeometry');
+      if (features[0].getGeometry().getType() === 'Polygon') {
+        const multiGeom = new Origo.ol.geom.MultiPolygon([]);
+        features.forEach((feat) => {
+          // Make sure that geometry is polygon in the case that it might be a point
+          if (feat.getGeometry().getType() === 'Polygon') {
+            multiGeom.appendPolygon(feat.getGeometry());
+          }
+        });
+        features[0].setGeometry(multiGeom);
+      } else {
+        console.log('FeatureCollection does not contain Polygons, we have not implemented this for Points or Lines');
+      }
+    }
+    return features;
+  };
+
+  /**
+   * Creates the content of the estate report for a feature. A community association gets a
+   * report built from its attributes and its part owners, any other estate gets the external
+   * estate report in an iframe.
+   * @param {Object} feature - The feature to create the report for.
+   * @param {string} objectId - The object identity of the feature.
+   * @returns {string} The html content of the estate report.
+   */
+  const createEstateReport = function createEstateReport(feature, objectId) {
+    // If not 'samfällighet', display the estate report in an iframe
+    if (feature.get('typ').toLowerCase() !== 'samfällighet') {
+      return `<iframe src="${pageEstateReportUrl}${objectId}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`;
+    }
+    const samfallighetsattribut = feature.get('samfallighetsattribut');
+    const delagare = feature.get('delagare');
+    const beteckning = feature.get('name');
+    const designationLabel = localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationDesignation' });
+    const shareLabel = localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationShare' });
+    const showEstateLabel = localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'tooltipText' });
+    // Create HTML content for the estate report, conditionally including available attributes
+    let pageEstateReport = `<div class="o-lmsearch-estate-report"><h1>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociation' })}</h1><p><b>${designationLabel}:</b> ${beteckning.slice(0, beteckning.indexOf('Enhetesområde'))}</p>
+    ${typeof samfallighetsattribut.totalLandarea !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationLandArea' })}:</b> ${samfallighetsattribut.totalLandarea}</p>` : ''}
+    ${typeof samfallighetsattribut.totalVattenarea !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationWaterArea' })}:</b> ${samfallighetsattribut.totalVattenarea}</p>` : ''}
+    ${typeof samfallighetsattribut.totalareal !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationRegisteredArea' })}:</b> ${samfallighetsattribut.totalareal}</p>` : ''}
+    ${typeof samfallighetsattribut.senasteAndringAllmannaDelen !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationLastChanged' })}:</b> ${samfallighetsattribut.senasteAndringAllmannaDelen}</p>` : ''}
+    ${typeof samfallighetsattribut.status !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationStatus' })}:</b> ${samfallighetsattribut.status}</p>` : ''}
+    ${typeof samfallighetsattribut.samfallighetsandamal !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationPurpose' })}:</b> ${samfallighetsattribut.samfallighetsandamal}</p>` : ''}`;
+    if (delagare && delagare.length > 0) {
+      pageEstateReport += `<h2>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationMembers' })}</h2><ul>`;
+      delagare.forEach((delagareItem) => {
+        if ('delagare' in delagareItem) {
+          const partOwner = delagareItem.delagare;
+          // The designation is a link that searches for the estate of the part owner and shows it in the map
+          const designation = typeof partOwner.objektidentitet !== 'undefined' ? `<button type="button" class="${partOwnerLinkCls}" data-objektidentitet="${partOwner.objektidentitet}" data-beteckning="${partOwner.beteckning}" title="${showEstateLabel}">${partOwner.beteckning}</button>` : partOwner.beteckning;
+          // The share is either a property of the part owner or of the part ownership itself, depending on the response
+          const andel = typeof partOwner.andel !== 'undefined' ? partOwner.andel : delagareItem.andel;
+          const andelssort = typeof partOwner.andelssort !== 'undefined' ? partOwner.andelssort : delagareItem.andelssort;
+          // The type of share is separated from the share with a space
+          const share = typeof andel !== 'undefined' ? `${andel}${typeof andelssort !== 'undefined' ? ` ${andelssort}` : ''}` : '';
+          pageEstateReport += `<li class="${partOwnerItemCls}"><b>${designationLabel}:</b> ${designation}${share !== '' ? ` <b>${shareLabel}:</b> ${share}` : ''}</li>`;
+        }
+        if ('annanDelagare' in delagareItem) {
+          pageEstateReport += `<li class="${partOwnerItemCls}"><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationOtherPartOwner' })}:</b> ${delagareItem.annanDelagare.skifteslagDelagare}</li>`;
+        }
+      });
+      pageEstateReport += '</ul>';
+    }
+    return `${pageEstateReport}</div>`;
+  };
+
+  /**
+   * Displays feature information on the map, either in a popup or as a geometry feature.
+   * @param {Array} features - Array of features to display.
+   * @param {string} objTitle - Title for the feature information.
+   * @param {HTMLElement} contentFeatureInfo - Content to display in the feature information.
+   * @param {string} [objectId] - Identifier for the estate report (optional).
+   */
+  const showFeatureInfo = function showFeatureInfo(features, objTitle, contentFeatureInfo, objectId) {
+    if (showFeature === 'popup') {
+      // Prepare the object to display in the popup
+      const obj = {};
+      obj.feature = features[0];
+      obj.title = objTitle;
+      obj.content = contentFeatureInfo;
+      clearFeatureInfo(); // Clear previous overlays
+      // Render feature information as a popup overlay
+      featureInfo.render([obj], 'overlay', viewer.getMapUtils().getCenter(features[0].getGeometry()));
+    } else {
+      // Clear existing features from the vector source
+      clearVectorFeatures();
+      // Add the selected feature to the vector source for visualization
+      vectorSource.addFeature(new Origo.ol.Feature({
+        geometry: features[0].getGeometry(),
+        name: objTitle
+      }));
+      // If objectId and pageEstateReportUrl are defined, create the estate report content
+      if (typeof objectId !== 'undefined' && pageEstateReportUrl !== '') {
+        // Create an icon feature for displaying the estate report information on the map
+        const iconFeature = new Origo.ol.Feature({
+          geometry: new Origo.ol.geom.Point(viewer.getMapUtils().getCenter(features[0].getGeometry())),
+          name: localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationTitle' }),
+          objektidentitet: objectId,
+          pageEstateReport: createEstateReport(features[0], objectId)
+        });
+        // Set the icon style for the estate report feature
+        iconFeature.setStyle(iconStyle);
+        vectorSource.addFeature(iconFeature);
+      }
+    }
+    // Zoom to the extent of the feature geometry
+    viewer.zoomToExtent(features[0].getGeometry(), maxZoomLevel);
+  };
+
+  /**
+   * Looks up an estate by its object identity and displays it in the map, the same way as when
+   * an estate is picked from the search result.
+   * @param {string} objectId - The object identity of the estate.
+   * @param {string} objTitle - Title for the feature information.
+   * @param {string} contentHtml - Content to display for the estate.
+   * @returns {Promise<void>} A promise that resolves when the estate has been displayed.
+   */
+  const showEstateByObjectId = function showEstateByObjectId(objectId, objTitle, contentHtml) {
+    return fetchFastighetsYtaById(objectId).then((response) => {
+      if (!response || typeof response.features === 'undefined' || response.features.length === 0) {
+        alert('There is no data available for this object!');
+        return;
+      }
+      const features = readEstateFeatures(response);
+      const content = viewer.getUtils().createElement('div', contentHtml);
+      showFeatureInfo(features, objTitle, content, objectId);
+    }).catch((err) => {
+      console.log(err);
+    });
+  };
+
+  /**
+   * Shows the given text in the search field, without triggering a new request for suggestions.
+   * @param {string} value - The text to display in the search field.
+   */
+  const setSearchFieldValue = function setSearchFieldValue(value) {
+    const searchEl = document.querySelector('#o-lmsearch');
+    const searchField = document.querySelector('#o-lmsearch .o-search-field');
+    if (!searchEl || !searchField) {
+      return;
+    }
+    searchField.value = value;
+    searchEl.classList.remove('o-search-false');
+    searchEl.classList.add('o-search-true');
+  };
+
+  /**
+   * Makes the object identity of every part owner in an estate report clickable. Clicking one
+   * closes the report, makes a new search for that estate and displays it in the map.
+   * @param {Object} modal - The modal component displaying the estate report.
+   */
+  const bindPartOwnerLinks = function bindPartOwnerLinks(modal) {
+    const modalEl = document.getElementById(modal.getId());
+    if (!modalEl) {
+      return;
+    }
+    modalEl.addEventListener('click', (evt) => {
+      const link = evt.target.closest(`.${partOwnerLinkCls}`);
+      if (!link) {
+        return;
+      }
+      const objectId = link.getAttribute('data-objektidentitet');
+      const beteckning = link.getAttribute('data-beteckning');
+      // Close the report of the community association before showing the estate of the part owner
+      modal.closeModal();
+      setSearchFieldValue(beteckning);
+      showEstateByObjectId(objectId, localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'layerNameEstates' }), beteckning);
+    });
+  };
 
   return Origo.ui.Component({
     /**
@@ -523,106 +757,6 @@ const Main = function Main(options = {}) {
       let coord;
 
       /**
-       * Fetches the property area for a given object ID.
-       *
-       * @param {string} objectId - The ID of the property object to fetch the area for.
-       * @returns {Promise<Object>} A promise that resolves to the JSON response containing the property area data.
-       * @throws {Error} Throws an error if the network response is not ok.
-       */
-      function fetchFastighetsYtaById(objectId) {
-        // Replace 'objectId' placeholder in the URL with the actual object ID
-        const urlTemp = urlYta.replace('objectId', objectId);
-
-        // Fetch the data from the constructed URL
-        return fetch(urlTemp)
-          .then(response => {
-            if (!response.ok) {
-              // Throw an error if the response status is not successful
-              throw new Error('Network response was not ok');
-            }
-            // Return the JSON data from the response
-            return response.json();
-          })
-          .catch(error => {
-            // Log an error message if the fetch operation fails
-            console.log('There has been a problem with your fetch operation:', error);
-          });
-      }
-      
-      // Clear the feature information and overlays
-      function clear() {
-        featureInfo.clear();
-        if (overlay) {
-          viewer.removeOverlays(overlay); // Remove any existing overlays
-        }
-      }
-
-      // Clear all features from the vector source
-      function clearFeatures() {
-        vectorSource.clear(); // Clear all vector features from the source
-      }
-
-      /**
-       * Displays feature information on the map, either in a popup or as a geometry feature.
-       * @param {Array} features - Array of features to display.
-       * @param {string} objTitle - Title for the feature information.
-       * @param {HTMLElement} contentFeatureInfo - Content to display in the feature information.
-       * @param {string} [objectId] - Identifier for the estate report (optional).
-       */
-      function showFeatureInfo(features, objTitle, contentFeatureInfo, objectId) {
-        if (showFeature === 'popup') {
-          // Prepare the object to display in the popup
-          const obj = {};
-          obj.feature = features[0];
-          obj.title = objTitle;
-          obj.content = contentFeatureInfo;
-          clear(); // Clear previous overlays
-          // Render feature information as a popup overlay
-          featureInfo.render([obj], 'overlay', viewer.getMapUtils().getCenter(features[0].getGeometry()));
-        } else {
-          // Clear existing features from the vector source
-          clearFeatures();
-          // Add the selected feature to the vector source for visualization
-          vectorSource.addFeature(new Origo.ol.Feature({
-            geometry: features[0].getGeometry(),
-            name: objTitle
-          }));
-          // If objectId and pageEstateReportUrl are defined, create the estate report content
-          if (typeof objectId !== 'undefined' && pageEstateReportUrl !== '') {
-            let pageEstateReport = '';
-            // If the feature type is 'samfällighet', create a detailed HTML report
-            if (features[0].get('typ').toLowerCase() === 'samfällighet') {
-              const samfallighetsattribut = features[0].get('samfallighetsattribut');
-              const beteckning = features[0].get('name');
-              // Create HTML content for the estate report, conditionally including available attributes 
-              pageEstateReport = `<h1>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociation' })}</h1><p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationDesignation' })}:</b> ${beteckning.slice(0, beteckning.indexOf('Enhetesområde'))}</p>
-              ${typeof samfallighetsattribut.totalLandarea !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationLandArea' })}:</b> ${samfallighetsattribut.totalLandarea}</p>` : ''}
-              ${typeof samfallighetsattribut.totalVattenarea !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationWaterArea' })}:</b> ${samfallighetsattribut.totalVattenarea}</p>` : ''}
-              ${typeof samfallighetsattribut.totalareal !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationRegisteredArea' })}:</b> ${samfallighetsattribut.totalareal}</p>` : ''}
-              ${typeof samfallighetsattribut.senasteAndringAllmannaDelen !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationLastChanged' })}:</b> ${samfallighetsattribut.senasteAndringAllmannaDelen}</p>` : ''}
-              ${typeof samfallighetsattribut.status !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationStatus' })}:</b> ${samfallighetsattribut.status}</p>` : ''}
-              ${typeof samfallighetsattribut.samfallighetsandamal !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationPurpose' })}:</b> ${samfallighetsattribut.samfallighetsandamal}</p>` : ''}`;
-            } else {
-              // If not 'samfällighet', display the estate report in an iframe
-              pageEstateReport = `<iframe src="${pageEstateReportUrl}${objectId}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`;
-            }
-            // Create an icon feature for displaying the estate report information on the map
-            const iconFeature = new Origo.ol.Feature({
-              geometry: new Origo.ol.geom.Point(viewer.getMapUtils().getCenter(features[0].getGeometry())),
-              name: localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationTitle' }),
-              objektidentitet: objectId,
-              pageEstateReport
-            });
-            // Set the icon style for the estate report feature
-            iconFeature.setStyle(iconStyle);
-            vectorSource.addFeature(iconFeature);
-          }
-        }
-        // Zoom to the extent of the feature geometry
-        viewer.zoomToExtent(features[0].getGeometry(), maxZoomLevel);
-      }
-
-      /**
        * Displays an overlay popup on the map at a given coordinate.
        *
        * @param {Object} dataOverlay - The data to display in the overlay.
@@ -630,7 +764,7 @@ const Main = function Main(options = {}) {
        */
       function showOverlay(dataOverlay, coordOverlay) {
         // Clear any existing overlays or popups
-        clear();
+        clearFeatureInfo();
 
         // Create a new popup element for the overlay
         const newPopup = Origo.popup('#o-map');
@@ -662,7 +796,6 @@ const Main = function Main(options = {}) {
         viewer.zoomToExtent(new Origo.ol.geom.Point(coordOverlay), maxZoomLevel);
       }
 
-
       if (layerNameAttribute && idAttribute) {
         layer = viewer.getLayer(data[layerNameAttribute]);
         id = data[idAttribute];
@@ -685,43 +818,7 @@ const Main = function Main(options = {}) {
         showFeatureInfo([feature], layer.get('title'), Origo.getAttributes(feature, layer));
       } else if (titleAttribute && contentAttribute && geometryAttribute) {
         if (data[layerNameAttribute] === localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'layerNameEstates' })) {
-          const objectId = data.id;
-          const areaPromise = fetchFastighetsYtaById(objectId);
-
-          areaPromise.then((response) => {
-            if (response.features.length === 0) {
-              alert('There is no data available for this object!');
-              return;
-            }
-            const format = new Origo.ol.format.GeoJSON();
-            const features = format.readFeatures(response);
-            /*
-              If the response is a feature collection we read the geometries into a multipolygon instead.
-              This is becase Origo will ignore multiple geometries and only display the first if we do not do it this way
-              A Better solution would probably be to patch origo so that it handles this in a better way but it's not a
-              well defined way to do this in a generic way as there are multiple features with both multiple attributes as well as geometries.
-              How should that be handled? In this function, at least we know from what service the data comes from.
-            */
-            if (features.length > 1) {
-              console.log('Found FeatureCollection with multiple features. Trying to merge them into a Multigeometry');
-              if (features[0].getGeometry().getType() === 'Polygon') {
-                const multiGeom = new Origo.ol.geom.MultiPolygon([]);
-                features.forEach((feat) => {
-                  // Make sure that geometry is polygon in the case that it might be a point
-                  if (feat.getGeometry().getType() === 'Polygon') {
-                    multiGeom.appendPolygon(feat.getGeometry());
-                  }
-                });
-                features[0].setGeometry(multiGeom);
-              } else {
-                console.log('FeatureCollection does not contain Polygons, we have not implemented this for Points or Lines');
-              }
-            }
-            content = viewer.getUtils().createElement('div', data[contentAttribute]);
-            showFeatureInfo(features, data[titleAttribute], content, objectId);
-          }).catch((err) => {
-            console.log(err);
-          });
+          showEstateByObjectId(data.id, data[titleAttribute], data[contentAttribute]);
         } else {
           feature = viewer.getMapUtils().wktToFeature(data[geometryAttribute], projectionCode);
           content = viewer.getUtils().createElement('div', data[contentAttribute]);
@@ -749,26 +846,13 @@ const Main = function Main(options = {}) {
 
         // Fetch estate data using the modified URL
         return fetch(urlTemp)
-          .then(response => response.json());
+          .then((response) => response.json());
       }
 
-      // Clear the feature information and overlays
-      function clear() {
-        featureInfo.clear();
-        if (overlay) {
-          viewer.removeOverlays(overlay); // Remove any existing overlays
-        }
-      }
-
-      // Clear all features from the vector source
-      function clearFeatures() {
-        vectorSource.clear(); // Clear all vector features from the source
-      }
-
-      // Display feature information on the map
-      function showFeatureInfo(features, objTitle, contentFeatureInfo, coordinate) {
+      // Display feature information on the map for the clicked coordinate
+      function showClickedFeatureInfo(features, objTitle, contentFeatureInfo, coordinate) {
         const curExtent = viewer.getExtent();
-        clearFeatures(); // Clear existing features before adding new ones
+        clearVectorFeatures(); // Clear existing features before adding new ones
         if (showFeature === 'geometryOnly') {
           // Handle multiple features case
           if (features.length > 1) {
@@ -834,22 +918,7 @@ const Main = function Main(options = {}) {
           vectorSource.addFeature(clickFeature); // Add the feature to the vector source
           // If estate report URL is available, create the report iframe
           if (typeof features[0].getProperties().objektidentitet !== 'undefined' && pageEstateReportUrl !== '') {
-            let pageEstateReport = '';
-            // Check if the feature type is 'samfällighet' and construct the appropriate report content
-            if (features[0].get('typ').toLowerCase() === 'samfällighet') {
-              const samfallighetsattribut = features[0].get('samfallighetsattribut');
-              const beteckning = features[0].get('name');
-              pageEstateReport = `<h1>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociation' })}</h1><p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationDesignation' })}:</b> ${beteckning.slice(0, beteckning.indexOf('Enhetesområde'))}</p>
-              ${typeof samfallighetsattribut.totalLandarea !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationLandArea' })}:</b> ${samfallighetsattribut.totalLandarea}</p>` : ''}
-              ${typeof samfallighetsattribut.totalVattenarea !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationWaterArea' })}:</b> ${samfallighetsattribut.totalVattenarea}</p>` : ''}
-              ${typeof samfallighetsattribut.totalareal !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationRegisteredArea' })}:</b> ${samfallighetsattribut.totalareal}</p>` : ''}
-              ${typeof samfallighetsattribut.senasteAndringAllmannaDelen !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationLastChanged' })}:</b> ${samfallighetsattribut.senasteAndringAllmannaDelen}</p>` : ''}
-              ${typeof samfallighetsattribut.status !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationStatus' })}:</b> ${samfallighetsattribut.status}</p>` : ''}
-              ${typeof samfallighetsattribut.samfallighetsandamal !== 'undefined' ? `<p><b>${localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationPurpose' })}:</b> ${samfallighetsattribut.samfallighetsandamal}</p>` : ''}`;
-            } else {
-              // If not 'samfällighet', create an iframe to show the report
-              pageEstateReport = `<iframe src="${pageEstateReportUrl}${features[0].getProperties().objektidentitet}" style="width: ${pageEstateReportWidth}; height: ${pageEstateReportHeight};display: block;"></iframe>`;
-            }
+            const pageEstateReport = createEstateReport(features[0], features[0].getProperties().objektidentitet);
             const iconFeature = new Origo.ol.Feature({
               geometry: new Origo.ol.geom.Point(coordinate), // Set the geometry of the estate report icon
               name: localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'communityAssociationTitle' }),
@@ -865,7 +934,7 @@ const Main = function Main(options = {}) {
           obj.feature = features[0];
           obj.title = objTitle;
           obj.content = contentFeatureInfo;
-          clear(); // Clear previous overlays
+          clearFeatureInfo(); // Clear previous overlays
           featureInfo.render([obj], 'overlay', features[0].getGeometry().getClosestPoint([curExtent[0], curExtent[3]])); // Set the popup on the feature to closest point from the northwest point of the extent, so that the popup minimal block the feature.
         }
       }
@@ -881,12 +950,14 @@ const Main = function Main(options = {}) {
         (feature) => {
           if (typeof feature.getProperties().pageEstateReport !== 'undefined' && pageEstateReportUrl !== '') {
             // Show modal with estate report if available
-            Origo.ui.Modal({
+            const estateReportModal = Origo.ui.Modal({
               title: feature.getProperties().name,
               content: feature.getProperties().pageEstateReport,
               style: 'width:auto;height:auto;resize:both;display:flex;flex-flow:column;',
               target: viewer.getId()
             });
+            // Make the object identity of each part owner in the report clickable
+            bindPartOwnerLinks(estateReportModal);
             estateInfoClick = true; // Mark that estate information was clicked
           }
         }
@@ -910,32 +981,32 @@ const Main = function Main(options = {}) {
             well defined way to do this in a generic way as there are multiple features with both multiple attributes as well as geometries.
             How should that be handled? In this function, at least we know from what service the data comes from.
           */
-            if (features.length > 1 && showFeature === 'popup') {
-              let enhetsOmrade = [];
-              console.log('Found FeatureCollection with multiple features. Trying to merge them into a Multigeometry');
-              const multiGeom = new Origo.ol.geom.MultiPolygon([]);
-              features.forEach((feature) => {
-                if (feature.getGeometry().getType() === 'Polygon') {
-                  const polygon = new Origo.ol.geom.Polygon(feature.getGeometry().getCoordinates());
-                  polygon.set('name', feature.getProperties().name);
-                  enhetsOmrade.push(feature.getProperties().name);
-                  multiGeom.appendPolygon(polygon);
-                }
-              });
-              multiGeom.set('Enhetsområden', enhetsOmrade.join('<br/>'));
-               features[0].setGeometry(multiGeom);
+          if (features.length > 1 && showFeature === 'popup') {
+            const enhetsOmrade = [];
+            console.log('Found FeatureCollection with multiple features. Trying to merge them into a Multigeometry');
+            const multiGeom = new Origo.ol.geom.MultiPolygon([]);
+            features.forEach((feature) => {
+              if (feature.getGeometry().getType() === 'Polygon') {
+                const polygon = new Origo.ol.geom.Polygon(feature.getGeometry().getCoordinates());
+                polygon.set('name', feature.getProperties().name);
+                enhetsOmrade.push(feature.getProperties().name);
+                multiGeom.appendPolygon(polygon);
+              }
+            });
+            multiGeom.set('Enhetsområden', enhetsOmrade.join('<br/>'));
+            features[0].setGeometry(multiGeom);
           }
           const featureProps = features[0].getProperties();
           featureName = featureProps.name;
           featureName = featureName.substring(0, featureName.indexOf('Enhetsomr')); // Extract part of the feature name
           const contentArr = [];
-          contentArr.push(`<div class="o-identify-content">`)
-          contentArr.push(viewer.getUtils().createElement('p', `${featureName}`)) // Add feature name to content
+          contentArr.push('<div class="o-identify-content">');
+          contentArr.push(viewer.getUtils().createElement('p', `${featureName}`)); // Add feature name to content
           Object.entries(features[0].getGeometry().getProperties()).forEach((prop) => {
-            contentArr.push(viewer.getUtils().createElement('p', `<b>${prop[0]}:</b><br/> ${prop[1]}`)) // Add all properties for the first feature to content
+            contentArr.push(viewer.getUtils().createElement('p', `<b>${prop[0]}:</b><br/> ${prop[1]}`)); // Add all properties for the first feature to content
           });
-          contentArr.push(`</div>`)
-          showFeatureInfo(features, localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'showFeatureInfoTitle' }), contentArr.join(''), coordinate); // Display feature information
+          contentArr.push('</div>');
+          showClickedFeatureInfo(features, localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'showFeatureInfoTitle' }), contentArr.join(''), coordinate); // Display feature information
         }).catch((err) => {
           console.log(err); // Log any errors during the fetch process
         });

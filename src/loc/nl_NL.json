@@ -16,9 +16,14 @@
         "communityAssociationStatus": "Status",
         "communityAssociationPurpose": "Doel",
         "communityAssociationTitle": "Vastgoedinformatie",
+        "communityAssociationShare": "Aandeel",
+        "communityAssociationMembers": "Deelnemers",
+        "communityAssociationOtherPartOwner": "Andere deelnemer",
         "showFeatureInfoTitle": "Vastgoed",
         "layerNameEstates": "Vastgoed",
         "layerNameAddresses": "Adres",
-        "layerNamePlaces": "Plaats"
+        "layerNamePlaces": "Plaats",
+        "objectidentity": "Objectidentiteit",
+        "type": "Type"
     }
 }
