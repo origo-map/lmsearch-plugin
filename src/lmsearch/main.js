@@ -13,7 +13,8 @@ import generateUUID from './generateuuid';
  * @param {string} [options.contentAttribute] - The attribute representing the content.
  * @param {string} [options.title] - The title for the search.
  * @param {number} [options.minLength=4] - Minimum length of search input before search starts.
- * @param {number} [options.limit=9] - Limit on the number of search results.
+ * @param {number} [options.limit=99] - Limit on the number of search results.
+ * @param {number} [options.searchDelay=500] - Time in milliseconds the user must stop typing before a search is made.
  * @param {string} [options.showFeature='geometryOnly'] - Determines how features are displayed ('geometryOnly' or 'popup').
  * @param {Object} [options.featureStyles] - Styles for the features on the map.
  * @param {Object} [options.labelFont] - Font settings for the label text.
@@ -38,7 +39,8 @@ const Main = function Main(options = {}) {
     contentAttribute,
     title,
     minLength,
-    limit,
+    limit = 99,
+    searchDelay = 500,
     showFeature = 'geometryOnly',
     featureStyles = {
       stroke: {
@@ -91,6 +93,9 @@ const Main = function Main(options = {}) {
   };
 
   let searchDb = {};
+  // The query of the latest search and the controller used to cancel it if a new search is made
+  let lastQuery;
+  let abortController;
   let map;
   let name;
   let northing;
@@ -423,7 +428,7 @@ const Main = function Main(options = {}) {
       includeSearchableLayers = Object.prototype.hasOwnProperty.call(options, 'includeSearchableLayers') ? options.includeSearchableLayers : false;
       searchableDefault = Object.prototype.hasOwnProperty.call(options, 'searchableDefault') ? options.searchableDefault : false;
       maxZoomLevel = options.maxZoomLevel || viewer.getResolutions().length - 2 || viewer.getResolutions();
-      this.limit = options.limit || 9;
+      this.limit = options.limit || 99;
       this.hintText = options.hintText || localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'hintText' });
       this.searchLabelText = options.searchLabelText || localization.getStringByKeys({ targetParentKey: 'lmsearch', targetKey: 'searchLabelText' });
       this.minLength = options.minLength || 4;
@@ -492,6 +497,11 @@ const Main = function Main(options = {}) {
       if (searchEnabled) {
         awesomplete.list = [];
         this.setSearchDb([]);
+        // Cancel a running search and allow the same query to be searched again
+        if (abortController) {
+          abortController.abort();
+        }
+        lastQuery = undefined;
       }
       this.clearFeatures();
     },
@@ -580,6 +590,23 @@ const Main = function Main(options = {}) {
         filter(suggestion) {
           return suggestion.value;
         }
+      });
+
+      /* Limit the height of the result list to the space left below it in the map, so that the
+       * list becomes scrollable instead of being cut off. Recalculated every time the list opens
+       * since the size of the map may have changed. offsetTop is used for the list since its
+       * bounding box is affected by the scale transition when it opens.
+       */
+      function setListMaxHeight() {
+        const mapEl = viewer.getMap().getTargetElement();
+        const mapBottom = mapEl.getBoundingClientRect().bottom;
+        const listTop = awesomplete.container.getBoundingClientRect().top + awesomplete.ul.offsetTop;
+        const margin = 16;
+        awesomplete.ul.style.maxHeight = `${Math.max(mapBottom - listTop - margin, 100)}px`;
+      }
+      input.addEventListener('awesomplete-open', setListMaxHeight);
+      window.addEventListener('resize', () => {
+        if (awesomplete.opened) setListMaxHeight();
       });
 
       // Group search results by type
@@ -707,13 +734,22 @@ const Main = function Main(options = {}) {
        */
       function makeRequest2(handler, obj) {
         let data = [];
-        console.log('making new request');
+        // Cancel the previous request if it is still running, its result is no longer wanted
+        if (abortController) {
+          abortController.abort();
+        }
+        abortController = new AbortController();
+        const { signal } = abortController;
+        lastQuery = obj.value;
         clearSearchResults(); // to prevent showing old result while waiting for the new response
-        prepSuggestions.makeRequest(prepOptions, obj.value, viewer, localization).then((response) => {
+        prepSuggestions.makeRequest(prepOptions, obj.value, viewer, localization, signal).then((response) => {
+          // Ignore the response if a newer search has been made while waiting for it
+          if (signal.aborted) return;
           // IE cannot handle spread syntax. Use flattenData function instead.
           data = flattenData(response);
           handler(data);
         }).catch((err) => {
+          if (signal.aborted) return;
           console.log(err.message);
           data = [{ label: 'Error', value: '' }];
           document.getElementById('o-lmsearch-info').innerHTML = err.message;
@@ -739,8 +775,19 @@ const Main = function Main(options = {}) {
           if (keyCode in keyCodes) {
             // Ignore special keys
           } else {
-            delay(() => { makeRequest2(responseHandler, that); }, 500);
+            /* Wait until the user has stopped typing for searchDelay milliseconds before searching,
+             * and skip the search if the query is the same as the last one (e.g. after pressing shift).
+             */
+            delay(() => {
+              if (that.value !== lastQuery) {
+                makeRequest2(responseHandler, that);
+              }
+            }, searchDelay);
           }
+        } else {
+          // Cancel a pending search if the query has become too short
+          delay(() => {}, 0);
+          lastQuery = undefined;
         }
       });
     },
