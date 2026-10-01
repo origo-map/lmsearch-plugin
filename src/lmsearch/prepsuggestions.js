@@ -195,11 +195,11 @@ function removeBasicAuth(url) {
  * @param {string} urlFastighet - The URL to fetch property data from.
  * @returns {Promise<Array>} A promise that resolves to an array of property names.
  */
-const extractNames = async function extractNames(urlFastighet, localization) {
+const extractNames = async function extractNames(urlFastighet, localization, signal) {
   if (!urlFastighet) return [];
 
   try {
-    const response = await fetch(urlFastighet);
+    const response = await fetch(urlFastighet, { signal });
     if (!response.ok) {
       console.log('Något gick fel, kunde inte hämta Fastigheter.');
       return [];
@@ -224,6 +224,8 @@ const extractNames = async function extractNames(urlFastighet, localization) {
       return [];
     }
   } catch (error) {
+    // A request cancelled by a newer search is not an error
+    if (error.name === 'AbortError') return [];
     console.log('Något gick fel:', error);
     return [];
   }
@@ -238,10 +240,10 @@ const extractNames = async function extractNames(urlFastighet, localization) {
  * @param {number} limit - The maximum number of results to return.
  * @returns {Promise<Array>} A promise that resolves to an array of addresses.
  */
-const extractAddresses = async function extractAddresses(urlAdress, q, limit, localization) {
+const extractAddresses = async function extractAddresses(urlAdress, q, limit, localization, signal) {
   if (urlAdress) {
     try {
-      const response = await fetch(urlAdress);
+      const response = await fetch(urlAdress, { signal });
       if (!response.ok) {
         console.log('Något gick fel, kunde inte hämta Adresser.');
         return [];
@@ -292,6 +294,8 @@ const extractAddresses = async function extractAddresses(urlAdress, q, limit, lo
       matches.sort(compareAddress);
       return matches;
     } catch (err) {
+      // A request cancelled by a newer search is not an error
+      if (err.name === 'AbortError') return [];
       console.log(`Något gick fel, kunde inte hämta Adresser. Error: ${err}`);
       return [];
     }
@@ -308,10 +312,10 @@ const extractAddresses = async function extractAddresses(urlAdress, q, limit, lo
  * @param {number} limit - The maximum number of results to return.
  * @returns {Promise<Array>} A promise that resolves to an array of places.
  */
-const extractOrter = async function extractOrter(urlOrt, q, limit, localization) {
+const extractOrter = async function extractOrter(urlOrt, q, limit, localization, signal) {
   if (urlOrt) {
     try {
-      const response = await fetch(urlOrt);
+      const response = await fetch(urlOrt, { signal });
       if (!response.ok) {
         console.log('Något gick fel, kunde inte hämta Orter.');
         return [];
@@ -360,6 +364,8 @@ const extractOrter = async function extractOrter(urlOrt, q, limit, localization)
       const duplicateFreeMatches = _.uniqBy(matches, obj => obj.id);
       return duplicateFreeMatches;
     } catch (err) {
+      // A request cancelled by a newer search is not an error
+      if (err.name === 'AbortError') return [];
       console.log('Något gick fel, kunde inte hämta Orter.');
       return [];
     }
@@ -377,14 +383,15 @@ const extractOrter = async function extractOrter(urlOrt, q, limit, localization)
  * @param {Object} viewer - Viewer object to handle geographic transformations.
  * @returns {Promise<Array>} A promise that resolves to an array of search results.
  */
-const extractES = async function extractES(elasticSearch, q, limit, viewer) {
+const extractES = async function extractES(elasticSearch, q, limit, viewer, signal) {
   if (elasticSearch) {
     let url = elasticSearch.url;
     url += `&q=%22${encodeURI(q)}%22*`;
     const urlWithoutBA = removeBasicAuth(url);
     try {
       const response = await fetch(urlWithoutBA.url, {
-        method:'GET', 
+        method:'GET',
+        signal,
         headers: {'Authorization': 'Basic ' + btoa(urlWithoutBA.username + ":" + urlWithoutBA.password)}
       });
       if (!response.ok) {
@@ -443,6 +450,8 @@ const extractES = async function extractES(elasticSearch, q, limit, viewer) {
       const duplicateFreeMatches = _.uniqBy(matches, obj => obj.id);
       return duplicateFreeMatches;
     } catch (err) {
+      // A request cancelled by a newer search is not an error
+      if (err.name === 'AbortError') return [];
       console.log(`Något gick fel, kunde inte hämta ${elasticSearch.name}! ${err.statusText}`);
       return [];
     }
@@ -457,9 +466,10 @@ const extractES = async function extractES(elasticSearch, q, limit, viewer) {
  * @param {Object} prepOptions - Options to prepare the request, including URLs and search parameters.
  * @param {string} q - The search query string.
  * @param {Object} viewer - Viewer object for geographic transformations.
+ * @param {AbortSignal} [signal] - Signal used to cancel the requests when a newer search is made.
  * @returns {Promise<Array>} A promise that resolves to an array of suggestions from multiple sources.
  */
-const makeRequest = function makeRequest(prepOptions, q, viewer, localization) {
+const makeRequest = function makeRequest(prepOptions, q, viewer, localization, signal) {
   // Prepare municipality data for the request
   const municipalities = prepMunicipalities(prepOptions.municipalities);
   const limit = prepOptions.limit;
@@ -489,10 +499,10 @@ const makeRequest = function makeRequest(prepOptions, q, viewer, localization) {
 
   // Make parallel requests to different endpoints and return the combined result
   return Promise.all([
-    extractNames(urlFastighet, localization),
-    extractAddresses(urlAdress, q, limit, localization),
-    extractOrter(urlOrt, q, limit, localization),
-    extractES(prepOptions.elasticSearch, q, limit, viewer)
+    extractNames(urlFastighet, localization, signal),
+    extractAddresses(urlAdress, q, limit, localization, signal),
+    extractOrter(urlOrt, q, limit, localization, signal),
+    extractES(prepOptions.elasticSearch, q, limit, viewer, signal)
   ])
     .then(data => data)
     .catch((err) => {

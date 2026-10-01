@@ -60,3 +60,8 @@
     vertical-align: baseline;
   }
 }
+
+// Make the result list scrollable when it is limited in height by setListMaxHeight in main.js
+#o-lmsearch .awesomplete > ul {
+  overflow-y: auto;
+}
