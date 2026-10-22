@@ -747,10 +747,16 @@ const Main = function Main(options = {}) {
           if (signal.aborted) return;
           // IE cannot handle spread syntax. Use flattenData function instead.
           data = flattenData(response);
+          // Statistics event: number of hits and result types, never the query itself
+          viewer.dispatch('lmsearch:result', {
+            hits: data.length,
+            types: [...new Set(data.map((item) => item[layerNameAttribute]).filter(Boolean))]
+          });
           handler(data);
         }).catch((err) => {
           if (signal.aborted) return;
           console.log(err.message);
+          viewer.dispatch('lmsearch:error');
           data = [{ label: 'Error', value: '' }];
           document.getElementById('o-lmsearch-info').innerHTML = err.message;
           document.getElementById('o-lmsearch-info').style.display = 'flex';
@@ -798,6 +804,7 @@ const Main = function Main(options = {}) {
     selectHandler(evt) {
       let id = evt.text.label;
       const data = searchDb[id];
+      viewer.dispatch('lmsearch:select', { type: data && data[layerNameAttribute] });
       let layer;
       let feature;
       let content;
