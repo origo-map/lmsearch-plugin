@@ -116,7 +116,9 @@ The configuration options explained:
 
 - minLength - specifies the minimum length of how many characters should be entered before search, defualt is 4.
 
-- limit - specifies how many matches should be shown. defualt is 9.
+- limit - specifies how many matches should be shown. default is 99.
+
+- searchDelay - specifies how many milliseconds the user must stop typing before a search is made, to reduce the load on the backend. default is 500.
 
 - maxZoomLevel - specifies which zoom level should be used when zooming in to when clicking on search hits. default is lowest resolution specified in config.
 
