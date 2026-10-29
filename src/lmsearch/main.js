@@ -747,10 +747,16 @@ const Main = function Main(options = {}) {
           if (signal.aborted) return;
           // IE cannot handle spread syntax. Use flattenData function instead.
           data = flattenData(response);
+          // Statistics event: number of hits and result types, never the query itself
+          viewer.dispatch('lmsearch:result', {
+            hits: data.length,
+            types: [...new Set(data.map((item) => item[layerNameAttribute]).filter(Boolean))]
+          });
           handler(data);
         }).catch((err) => {
           if (signal.aborted) return;
           console.log(err.message);
+          viewer.dispatch('lmsearch:error');
           data = [{ label: 'Error', value: '' }];
           document.getElementById('o-lmsearch-info').innerHTML = err.message;
           document.getElementById('o-lmsearch-info').style.display = 'flex';
@@ -798,6 +804,7 @@ const Main = function Main(options = {}) {
     selectHandler(evt) {
       let id = evt.text.label;
       const data = searchDb[id];
+      viewer.dispatch('lmsearch:select', { type: data && data[layerNameAttribute] });
       let layer;
       let feature;
       let content;
@@ -1005,6 +1012,8 @@ const Main = function Main(options = {}) {
             });
             // Make the object identity of each part owner in the report clickable
             bindPartOwnerLinks(estateReportModal);
+            // Let other components, e.g. a statistics plugin, know that an estate report was opened
+            viewer.dispatch('lmsearch:estatereport');
             estateInfoClick = true; // Mark that estate information was clicked
           }
         }
@@ -1017,10 +1026,15 @@ const Main = function Main(options = {}) {
         areaPromise.then((response) => {
           if (typeof response.features === 'undefined') {
             console.log('There is no data available for this object!');
+            // Let other components, e.g. a statistics plugin, know that the lookup found no estate
+            viewer.dispatch('lmsearch:estatelookup', { hit: false });
             return;
           }
           const format = new Origo.ol.format.GeoJSON();
           const features = format.readFeatures(response); // Convert response to features
+          // Let other components, e.g. a statistics plugin, know whether the lookup found an estate.
+          // The estate designation itself is not included.
+          viewer.dispatch('lmsearch:estatelookup', { hit: features.length > 0 });
           /*
             If the response is a feature collection we read the geometries into a multipolygon instead.
             This is becase Origo will ignore multiple geometries and only display the first if we do not do it this way
