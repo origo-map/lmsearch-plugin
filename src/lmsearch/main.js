@@ -1012,6 +1012,8 @@ const Main = function Main(options = {}) {
             });
             // Make the object identity of each part owner in the report clickable
             bindPartOwnerLinks(estateReportModal);
+            // Let other components, e.g. a statistics plugin, know that an estate report was opened
+            viewer.dispatch('lmsearch:estatereport');
             estateInfoClick = true; // Mark that estate information was clicked
           }
         }
@@ -1024,10 +1026,15 @@ const Main = function Main(options = {}) {
         areaPromise.then((response) => {
           if (typeof response.features === 'undefined') {
             console.log('There is no data available for this object!');
+            // Let other components, e.g. a statistics plugin, know that the lookup found no estate
+            viewer.dispatch('lmsearch:estatelookup', { hit: false });
             return;
           }
           const format = new Origo.ol.format.GeoJSON();
           const features = format.readFeatures(response); // Convert response to features
+          // Let other components, e.g. a statistics plugin, know whether the lookup found an estate.
+          // The estate designation itself is not included.
+          viewer.dispatch('lmsearch:estatelookup', { hit: features.length > 0 });
           /*
             If the response is a feature collection we read the geometries into a multipolygon instead.
             This is becase Origo will ignore multiple geometries and only display the first if we do not do it this way
